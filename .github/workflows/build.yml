@@ -1,0 +1,100 @@
+name: Build and Publish Wheels
+
+on:
+    release:
+      types:
+        - published
+    # uncomment this during debugging
+    # pull_request:
+    #   branches: [ main ]
+  
+    # To run this workflow manually from the Actions tab
+    workflow_dispatch:
+
+env:
+  GDAL_RELEASE: v3.8.0
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: [3.10, 3.11, 3.12]
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4.1.1
+        with:
+          submodules: recursive
+          fetch-depth: 0  # Ensure full history is fetched for tags
+
+      - name: Set GDAL Submodule to Specific Tag
+        run: |
+          git submodule foreach 'git checkout tags/${{ env.GDAL_RELEASE }}'
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Install dependencies
+      - name: Install Dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libproj-dev libsqlite3-dev
+
+      - name: Install Dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake proj sqlite3
+
+      - name: Install Dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install cmake
+
+      # Build GDAL and package
+      - name: Build Wheels
+        env:
+          CIBW_BEFORE_BUILD: |
+            mkdir build && cd build && cmake .. && cmake --build . --target install
+          CIBW_REPAIR_WHEEL_COMMAND: |
+            python -m pip install delvewheel
+            python -m delvewheel repair {wheel} -w {dest_dir}
+          CIBW_BUILD_VERBOSITY: 1
+        run: |
+          pip install cibuildwheel==2.12.0
+          cibuildwheel --output-dir wheelhouse
+
+      - uses: actions/upload-artifact@v4.4.0
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  testpypi:
+    name: Publish package to TestPyPI
+    needs:
+    - build_wheels
+    runs-on: ubuntu-latest
+
+    environment:
+      name: test-pypi
+
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4.1.8
+      with:
+        # unpacks all CIBW artifacts into dist/
+        pattern: cibw-*
+        path: dist
+        merge-multiple: true
+    - name: Publish distribution to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
