@@ -1,0 +1,26 @@
+[project]
+name = "gdal-binary"
+version = "0.1.0"
+description = "GDAL binary wheels"
+authors = [
+    {name = "Jiri Klic", email = "web@jiriklic.com"},
+]
+dependencies = [
+    "setuptools>=75.1.0",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.pdm]
+distribution = true
