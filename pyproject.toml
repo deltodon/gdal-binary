@@ -29,23 +29,21 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 
-
-
 [build-system]
-requires = ["scikit-build-core>=0.9.8", "pybind11"]
-build-backend = "scikit_build_core.build"
-
+requires = [
+  "setuptools>=75",
+  "wheel",
+  "oldest-supported-numpy",
+  "setuptools_scm[toml]>=8.1",
+  "pybind11"
+]
+build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
 test = ["pytest"]
 
-
-[tool.scikit-build]
-wheel.expand-macos-universal-tags = true
-
-
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "8.3"
 addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 xfail_strict = true
 filterwarnings = [
@@ -54,9 +52,10 @@ filterwarnings = [
 ]
 testpaths = ["tests"]
 
-
 [tool.cibuildwheel]
 test-command = "pytest {project}/tests"
 test-extras = ["test"]
 test-skip = ["*universal2:arm64"]
 build-verbosity = 1
+
+[tool.setuptools_scm]
