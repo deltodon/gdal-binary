@@ -30,17 +30,12 @@ classifiers = [
 ]
 
 [build-system]
-requires = [
-  "setuptools>=75",
-  "wheel",
-  "oldest-supported-numpy",
-  "setuptools_scm[toml]>=8.1",
-  "pybind11"
-]
-build-backend = "setuptools.build_meta"
+requires = ["meson-python"]
+build-backend = "mesonpy"
 
 [project.optional-dependencies]
 test = ["pytest"]
+dev = ["meson", "ninja"]
 
 [tool.pytest.ini_options]
 minversion = "8.3"
@@ -58,4 +53,28 @@ test-extras = ["test"]
 test-skip = ["*universal2:arm64"]
 build-verbosity = 1
 
-[tool.setuptools_scm]
+# New section for cibuildwheel dependencies
+before-all = [
+  "yum install -y proj-devel sqlite-devel curl-devel expat-devel zlib-devel libtiff-devel libpng-devel libgeotiff-devel libjpeg-turbo-devel geos-devel",
+]
+
+# Linux-specific settings
+[[tool.cibuildwheel.overrides]]
+select = "cp*-manylinux*"
+before-all = [
+  "yum install -y proj-devel sqlite-devel curl-devel expat-devel zlib-devel libtiff-devel libpng-devel libgeotiff-devel libjpeg-turbo-devel geos-devel",
+]
+
+# macOS-specific settings
+[[tool.cibuildwheel.overrides]]
+select = "cp*-macosx*"
+before-all = [
+  "brew install proj sqlite curl expat zlib libtiff libpng libgeotiff jpeg geos",
+]
+
+# Windows-specific settings
+[[tool.cibuildwheel.overrides]]
+select = "cp*-win*"
+before-all = [
+  "choco install proj sqlite curl expat zlib libtiff libpng libgeotiff jpeg geos",
+]
