@@ -1,26 +1,22 @@
-# Binary Demo
+# gdal-binary
+
+This project is still in a very early development and doas not include any useful functionality yet.
+
+Please come back later.
 
 An example project built with [pybind11](https://github.com/pybind/pybind11) and
 scikit-build-core. Python 3.8+ (see older commits for older versions of Python).
 
-
 ## Installation
 
-- clone this repository
-- `pip install ./binary_demo`
-
-## CI Examples
-
-There are examples for CI in `.github/workflows`. A simple way to produces
-binary "wheels" for all platforms is illustrated in the "wheels.yml" file, using
-[`cibuildwheel`][].
+```bash
+pip install gdal-binary
+```
 
 ## Test call
 
 ```python
-import binary_demo
+import gdal_binary
 
-binary_demo.add(1, 2)
+gdal_binary.add(1, 2)
 ```
-
-[`cibuildwheel`]: https://cibuildwheel.readthedocs.io
