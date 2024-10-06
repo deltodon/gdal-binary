@@ -1,0 +1,62 @@
+[project]
+name = "gdal-binary"
+dynamic = ["version"]
+description = "GDAL binary wheels"
+authors = [
+  { name = "Jiri Klic", email = "web@jiriklic.com" },
+]
+requires-python = ">=3.8,<3.13"
+readme = "README.md"
+keywords = ["gis", "raster", "vector"]
+license = {text = "MIT"}
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: C",
+  "Programming Language :: C++",
+  "Topic :: Scientific/Engineering :: GIS",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+
+
+[build-system]
+requires = ["scikit-build-core>=0.9.8", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+
+[tool.scikit-build]
+wheel.expand-macos-universal-tags = true
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+xfail_strict = true
+filterwarnings = [
+  "error",
+  "ignore:(ast.Str|Attribute s|ast.NameConstant|ast.Num) is deprecated:DeprecationWarning:_pytest",  # Python 3.12
+]
+testpaths = ["tests"]
+
+
+[tool.cibuildwheel]
+test-command = "pytest {project}/tests"
+test-extras = ["test"]
+test-skip = ["*universal2:arm64"]
+build-verbosity = 1
