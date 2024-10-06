@@ -1,23 +1,34 @@
 [project]
 name = "gdal-binary"
-version = "0.1.0"
+dynamic = ["version"]
 description = "GDAL binary wheels"
 authors = [
   { name = "Jiri Klic", email = "web@jiriklic.com" },
 ]
 requires-python = ">=3.8,<3.13"
 readme = "README.md"
+keywords = ["gis", "raster", "vector"]
 license = {text = "MIT"}
 classifiers = [
-  "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: MIT License",
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: C",
+  "Programming Language :: C++",
+  "Topic :: Scientific/Engineering :: GIS",
+  "Topic :: Scientific/Engineering :: Information Analysis",
 ]
+
 
 
 [build-system]

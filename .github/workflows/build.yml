@@ -5,8 +5,8 @@ on:
     types:
       - published
   # uncomment this during debugging
-  pull_request:
-    branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
   
   # To run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -71,3 +71,27 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
+
+  pypi:
+    name: Publish the distribution to PyPI
+    needs:
+    - build_wheels
+    - testpypi
+    runs-on: ubuntu-latest
+
+    environment:
+      name: pypi
+
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4.1.8
+      with:
+        # unpacks all CIBW artifacts into dist/
+        pattern: cibw-*
+        path: dist
+        merge-multiple: true
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
