@@ -31,10 +31,10 @@ classifiers = [
 
 [build-system]
 requires = [
-  "setuptools>=61",
+  "setuptools>=75",
   "wheel",
   "oldest-supported-numpy",
-  "setuptools_scm[toml]>=6.2",
+  "setuptools_scm[toml]>=8.1",
   "pybind11"
 ]
 build-backend = "setuptools.build_meta"
@@ -43,7 +43,7 @@ build-backend = "setuptools.build_meta"
 test = ["pytest"]
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "8.3"
 addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 xfail_strict = true
 filterwarnings = [
