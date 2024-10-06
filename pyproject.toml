@@ -3,140 +3,49 @@ name = "gdal-binary"
 version = "0.1.0"
 description = "GDAL binary wheels"
 authors = [
-    {name = "Jiri Klic", email = "web@jiriklic.com"},
-]
-dependencies = [
-    "setuptools>=75.1.0",
+  { name = "Jiri Klic", email = "web@jiriklic.com" },
 ]
 requires-python = ">=3.8,<3.13"
 readme = "README.md"
 license = {text = "MIT"}
 classifiers = [
-    "Programming Language :: Python :: 3",
+  "Development Status :: 4 - Beta",
     "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
 ]
+
 
 [build-system]
-requires = [
-    "setuptools>=61",
-    "wheel",
-    "oldest-supported-numpy"
+requires = ["scikit-build-core>=0.9.8", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+
+[tool.scikit-build]
+wheel.expand-macos-universal-tags = true
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+xfail_strict = true
+filterwarnings = [
+  "error",
+  "ignore:(ast.Str|Attribute s|ast.NameConstant|ast.Num) is deprecated:DeprecationWarning:_pytest",  # Python 3.12
 ]
-build-backend = "setuptools.build_meta"
+testpaths = ["tests"]
+
 
 [tool.cibuildwheel]
-build = "cp310-* cp311-* cp312-*"
-archs = "auto64"
-skip = ["pp*", "*-manylinux*", "*-musllinux_*"]
-test-requires = "pytest"
 test-command = "pytest {project}/tests"
-build-verbosity = 3
-
-[tool.cibuildwheel.linux]
-before-all = """
-yum update -y
-yum install -y \
-    libtool sqlite-devel libcurl-devel libxml2-devel expat-devel xerces-c-devel \
-    netcdf-devel poppler-devel libspatialite-devel hdf5-devel openjpeg2-devel libzstd-devel \
-    blosc-devel xz-devel snappy-devel cfitsio-devel \
-    geos-devel libgeotiff-devel libtiff-devel swig \
-    unixODBC-devel           
-mkdir -p build && cd build
-cmake .. \
-  -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DGDAL_USE_EXTERNAL_LIBS=ON \
-  -DGDAL_USE_INTERNAL_LIBS=WHEN_NO_EXTERNAL \
-  -DBUILD_PYTHON_BINDINGS=ON \
-  -DBUILD_JAVA_BINDINGS=OFF \
-  -DBUILD_CSHARP_BINDINGS=OFF \
-  -DPython3_ROOT_DIR=/opt/python/$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}-cp{sys.version_info.major}{sys.version_info.minor}')") \
-  -DPython3_EXECUTABLE=$(which python) \
-  -DCMAKE_INSTALL_PREFIX=$HOME/gdal_install \
-  -DCMAKE_VERBOSE_MAKEFILE=ON
-cmake --build . --config Release --target install -- VERBOSE=1
-"""
-repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
-environment = """
-PROJ_PREFIX=/usr/local/proj
-PROJ_PREFIX=/usr/local
-PROJ_VERSION=8.2.1
-PROJ_DIR=/usr/local
-CMAKE_PREFIX_PATH=/usr/local:$CMAKE_PREFIX_PATH
-LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-GDAL_DATA=$HOME/gdal_install/share/gdal
-PATH=$HOME/gdal_install/bin:$PATH
-"""
-manylinux-x86_64-image = "manylinux2014"
-
-[tool.cibuildwheel.macos]
-before-all = """
-brew update
-brew install cmake proj sqlite3 libpq curl libxml2 expat xerces-c \
-  netcdf poppler libspatialite hdf5 openjpeg zstd \
-  c-blosc xz snappy cfitsio geos libgeotiff libtiff swig \
-  unixodbc
-python -m pip install oldest-supported-numpy
-mkdir -p build && cd build
-cmake .. \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DGDAL_USE_EXTERNAL_LIBS=ON \
-  -DGDAL_USE_INTERNAL_LIBS=WHEN_NO_EXTERNAL \
-  -DCMAKE_DISABLE_FIND_PACKAGE_Arrow=ON \
-  -DGDAL_USE_LIBKML=OFF \
-  -DBUILD_PYTHON_BINDINGS=ON \
-  -DBUILD_JAVA_BINDINGS=OFF \
-  -DBUILD_CSHARP_BINDINGS=OFF \
-  -DPython3_ROOT_DIR=$(python -c "import sys; print(sys.prefix)") \
-  -DCMAKE_INSTALL_PREFIX=$HOME/gdal_install \
-  -DCMAKE_PREFIX_PATH=$(brew --prefix) \
-  -DCMAKE_VERBOSE_MAKEFILE=ON
-cmake --build . --config Release --target install -- VERBOSE=1
-"""
-repair-wheel-command = """
-delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
-"""
-environment = """
-GDAL_DATA=$HOME/gdal_install/share/gdal
-PATH=$HOME/gdal_install/bin:$PATH
-CMAKE_PREFIX_PATH=$(brew --prefix):$CMAKE_PREFIX_PATH
-"""
-
-[tool.cibuildwheel.windows]
-before-all = """
-choco install cmake swig ninja -y
-git clone https://github.com/microsoft/vcpkg.git
-.\\vcpkg\\bootstrap-vcpkg.bat
-.\\vcpkg\\vcpkg.exe install proj sqlite3 curl libxml2 expat xerces-c netcdf-c poppler spatialite hdf5 openjpeg zstd blosc lzma snappy cfitsio geos geotiff tiff --triplet x64-windows
-set VCPKG_ROOT=%CD%\\vcpkg
-set VCPKG_DEFAULT_TRIPLET=x64-windows
-python -m pip install oldest-supported-numpy
-mkdir build
-cd build
-cmake -G "Visual Studio 15 2017" .. ^
-  -DCMAKE_BUILD_TYPE=Release ^
-  -DGDAL_USE_EXTERNAL_LIBS=ON ^
-  -DGDAL_USE_INTERNAL_LIBS=WHEN_NO_EXTERNAL ^
-  -DBUILD_PYTHON_BINDINGS=ON ^
-  -DBUILD_JAVA_BINDINGS=OFF ^
-  -DBUILD_CSHARP_BINDINGS=OFF ^
-  -DPython3_ROOT_DIR=$(python -c "import sys; print(sys.prefix)") ^
-  -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\\scripts\\buildsystems\\vcpkg.cmake" ^
-  -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\\gdal_install ^
-  -G "Ninja" ^
-  -DCMAKE_VERBOSE_MAKEFILE=ON
-cmake --build . --config Release --target install -- -v
-"""
-repair-wheel-command = """
-pip install delvewheel
-delvewheel repair -w {dest_dir} {wheel}
-"""
-environment = """
-GDAL_DATA=%USERPROFILE%\\gdal_install\\share\\gdal
-PATH=%USERPROFILE%\\gdal_install\\bin;%PATH%
-"""
-
-[tool.pdm.dev-dependencies]
-dev = [
-    "cibuildwheel>=2.21.2",
-]
+test-extras = ["test"]
+test-skip = ["*universal2:arm64"]
+build-verbosity = 1
