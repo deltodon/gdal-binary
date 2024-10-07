@@ -55,30 +55,49 @@ testpaths = ["tests"]
 test-command = "pytest {project}/tests"
 test-extras = ["test"]
 test-skip = ["*universal2:arm64"]
-build-verbosity = 1
+
+# build-verbosity = 3
+config-settings = "build-dir=/project/build"
+# multiple configs
+# config-settings = "build-dir=/project/build, setup-args=-Doption=true, compile-args=-j6"
+
+# environment = {MESONPY_EXPERIMENTAL_NO_CLEAN ="1", MESONPY_VERBOSE = "1"}
+# build-frontend = "build"
+# manylinux-x86_64-image = "manylinux_2_24"
 
 # New section for cibuildwheel dependencies
-before-all = [
-  "yum install -y proj-devel sqlite-devel curl-devel expat-devel zlib-devel libtiff-devel libpng-devel libgeotiff-devel libjpeg-turbo-devel geos-devel",
-]
+before-all = """
+yum install -y sqlite-devel curl-devel expat-devel zlib-devel \
+libtiff-devel libpng-devel libgeotiff-devel libjpeg-turbo-devel geos-devel
+"""
 
 # Linux-specific settings
 [[tool.cibuildwheel.overrides]]
 select = "cp*-manylinux*"
 before-all = [
-  "yum install -y proj-devel sqlite-devel curl-devel expat-devel zlib-devel libtiff-devel libpng-devel libgeotiff-devel libjpeg-turbo-devel geos-devel",
+  """
+  yum install -y sqlite-devel curl-devel expat-devel zlib-devel \
+  libtiff-devel libpng-devel libgeotiff-devel libjpeg-turbo-devel geos-devel \
+  sqlite sqlite-devel libgeotiff-devel libtiff-devel
+  """,
 ]
 
 # macOS-specific settings
 [[tool.cibuildwheel.overrides]]
 select = "cp*-macosx*"
 before-all = [
-  "brew install proj sqlite curl expat zlib libtiff libpng libgeotiff jpeg geos",
+  """
+  brew install sqlite curl expat zlib libtiff libpng jpeg geos \
+  openssl libxml2 json-c netcdf hdf5 cfitsio qhull freexl libkml poppler webp
+  """,
 ]
 
 # Windows-specific settings
 [[tool.cibuildwheel.overrides]]
 select = "cp*-win*"
 before-all = [
-  "choco install proj sqlite curl expat zlib libtiff libpng libgeotiff jpeg geos",
+  """
+  choco install -y sqlite curl expat zlib libtiff libpng jpeg geos \
+  openssl libxml2 json-c netcdf hdf5 cfitsio qhull freexl libkml poppler webp
+  """,
 ]
