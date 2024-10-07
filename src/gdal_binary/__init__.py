@@ -1,24 +1,9 @@
 from __future__ import annotations
 
-from ._core import __doc__, __version__, add, subtract
+from ._core import __doc__, add, subtract
+from .version import VERSION as __version__
 
 __all__ = ["__doc__", "__version__", "add", "subtract"]
 
-
-# PEP0440 compatible formatted version, see:
-# https://www.python.org/dev/peps/pep-0440/
-#
-# Generic release markers:
-#   X.Y.0     # For first release after an increment in Y
-#   X.Y.Z     # For bugfix releases
-#
-# Admissible pre-release markers:
-#   X.Y.ZaN   # Alpha release
-#   X.Y.ZbN   # Beta release
-#   X.Y.ZrcN  # Release Candidate
-#   X.Y.Z     # Final release
-#
-# Admissible development markers:
-#   X.Y.Z.devN  # Developmental release
-#
-__version__ = "0.2.0.dev1"
+# The version is now managed by Meson and imported from version.py
+# This ensures consistency between Meson, pyproject.toml, and Python code
