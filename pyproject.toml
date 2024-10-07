@@ -35,7 +35,11 @@ build-backend = "mesonpy"
 
 [project.optional-dependencies]
 test = ["pytest"]
-dev = ["meson", "ninja"]
+dev = [
+  "meson",
+  "ninja",
+  "cibuildwheel"
+]
 
 [tool.pytest.ini_options]
 minversion = "8.3"
