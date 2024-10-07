@@ -19,28 +19,23 @@ To build this project from source, you'll need:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/gdal-binary.git
+   git clone git@github.com:deltodon/gdal-binary.git
    cd gdal-binary
    ```
 
-2. Install Meson and other dependencies:
+2. Initialise git submodules
    ```bash
-   pip install meson-python
+   git submodule update --init --recursive
    ```
 
-3. Configure the build:
+3. Install dependencies:
    ```bash
-   meson setup builddir
+   make .venv
    ```
 
-4. Compile the project:
+4. Run build locally:
    ```bash
-   meson compile -C builddir
-   ```
-
-5. Install:
-   ```bash
-   meson install -C builddir
+   make wheel
    ```
 
 ## Installation from PyPI

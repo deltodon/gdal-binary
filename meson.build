@@ -13,7 +13,7 @@ proj_cmake_configure = run_command('cmake',
   '-B', proj_build_dir,
   '-DCMAKE_INSTALL_PREFIX=' + proj_install_dir,
   '-DBUILD_SHARED_LIBS=ON',
-  '-DENABLE_CURL=OFF',
+  '-DENABLE_CURL=ON',
   '-DBUILD_TESTING=OFF',
   check: true
 )
