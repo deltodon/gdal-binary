@@ -92,6 +92,7 @@ cmake_python_configure = run_command('cmake',
   '-DGDAL_INCLUDE_DIR=' + meson.current_build_dir() / gdal_install_dir / 'include',
   '-DGDAL_LIBRARY=' + meson.current_build_dir() / gdal_install_dir / 'lib' / 'libgdal.so',
   '-DSWIG_EXECUTABLE=' + run_command('which', 'swig', check: true).stdout().strip(),
+  '-DPython_EXECUTABLE=' + py.path(),
   check: true
 )
 
