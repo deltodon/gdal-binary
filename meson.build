@@ -87,12 +87,11 @@ cmake_python_configure = run_command('cmake',
   '-DCMAKE_PREFIX_PATH=' + meson.current_build_dir() / gdal_install_dir,
   '-DCMAKE_MODULE_PATH=' + meson.current_source_dir() / 'gdal/cmake;' + meson.current_source_dir() / 'gdal/cmake/helpers',
   '-DCMAKE_INSTALL_PREFIX=' + meson.current_build_dir() / gdal_python_build_dir,
-  '-DPROJ_INCLUDE_DIR=' + meson.current_build_dir() / proj_install_dir / 'include',
-  '-DPROJ_LIBRARY_RELEASE=' + meson.current_build_dir() / proj_install_dir / 'lib' / 'libproj.so',
   '-DGDAL_INCLUDE_DIR=' + meson.current_build_dir() / gdal_install_dir / 'include',
   '-DGDAL_LIBRARY=' + meson.current_build_dir() / gdal_install_dir / 'lib' / 'libgdal.so',
   '-DSWIG_EXECUTABLE=' + run_command('which', 'swig', check: true).stdout().strip(),
   '-DPython_EXECUTABLE=' + py.path(),
+  '-DCMAKE_MINIMUM_REQUIRED_VERSION=3.16',
   check: true
 )
 
