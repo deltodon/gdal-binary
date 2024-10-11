@@ -30,7 +30,7 @@ classifiers = [
 ]
 
 [build-system]
-requires = ["meson-python"]
+requires = ["meson-python", "pybind11"]
 build-backend = "mesonpy"
 
 [project.optional-dependencies]
@@ -38,7 +38,8 @@ test = ["pytest"]
 dev = [
   "meson",
   "ninja",
-  "cibuildwheel"
+  "cibuildwheel",
+  "pybind11"
 ]
 
 [tool.pytest.ini_options]
