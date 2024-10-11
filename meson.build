@@ -72,26 +72,26 @@ py.install_sources(
   subdir: 'gdal_binary'
 )
 
-# If you need to create an executable, uncomment and modify this section
-# executable('gdal-binary', 'src/main.cpp',
-#   dependencies : [gdal_dep],
-#   install : true)
-
 # Build GDAL's Python wrapper
 gdal_python_build_dir = 'gdal_python_build'
 run_command('mkdir', '-p', gdal_python_build_dir, check: true)
 
+# Create a temporary CMakeLists.txt file for GDAL Python bindings
+gdal_python_cmakelists = 'gdal_python_cmakelists.txt'
+run_command('cp', meson.current_source_dir() / 'gdal/swig/python/CMakeLists.txt', gdal_python_cmakelists, check: true)
+
+# Prepend necessary CMake commands to the temporary CMakeLists.txt
+run_command('sed', '-i', '1icmake_minimum_required(VERSION 3.16)\nproject(GDAL_PYTHON_BINDINGS)', gdal_python_cmakelists, check: true)
+
 cmake_python_configure = run_command('cmake',
-  '-S', meson.current_source_dir() / 'gdal/swig/python',
+  '-S', meson.current_source_dir(),
   '-B', gdal_python_build_dir,
   '-DCMAKE_PREFIX_PATH=' + meson.current_build_dir() / gdal_install_dir,
   '-DCMAKE_MODULE_PATH=' + meson.current_source_dir() / 'gdal/cmake;' + meson.current_source_dir() / 'gdal/cmake/helpers',
   '-DCMAKE_INSTALL_PREFIX=' + meson.current_build_dir() / gdal_python_build_dir,
-  '-DGDAL_INCLUDE_DIR=' + meson.current_build_dir() / gdal_install_dir / 'include',
-  '-DGDAL_LIBRARY=' + meson.current_build_dir() / gdal_install_dir / 'lib' / 'libgdal.so',
   '-DSWIG_EXECUTABLE=' + run_command('which', 'swig', check: true).stdout().strip(),
   '-DPython_EXECUTABLE=' + py.path(),
-  '-DCMAKE_MINIMUM_REQUIRED_VERSION=3.16',
+  '-DGDAL_PYTHON_CSOURCE_DIR=' + meson.current_source_dir() / 'gdal/swig/python',
   check: true
 )
 
@@ -102,3 +102,6 @@ run_command('cp',
   gdal_python_build_dir / 'osgeo/_gdal.so',
   meson.current_source_dir() / 'src/gdal_binary/',
   check: true)
+
+# Clean up temporary CMakeLists.txt
+run_command('rm', gdal_python_cmakelists, check: true)
