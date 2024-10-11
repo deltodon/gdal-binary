@@ -81,9 +81,15 @@ gdal_python_build_dir = 'gdal_python_build'
 run_command('mkdir', '-p', gdal_python_build_dir, check: true)
 
 cmake_python_configure = run_command('cmake',
-  '-S', meson.current_source_dir() / 'gdal/swig/python',
+  '-S', meson.current_source_dir(),  # Use the root directory where our new CMakeLists.txt is located
   '-B', gdal_python_build_dir,
   '-DCMAKE_PREFIX_PATH=' + meson.current_build_dir() / gdal_install_dir,
+  '-DCMAKE_MODULE_PATH=' + meson.current_source_dir() / 'gdal/cmake',
+  '-DCMAKE_INSTALL_PREFIX=' + meson.current_build_dir() / gdal_python_build_dir,
+  '-DPROJ_INCLUDE_DIR=' + meson.current_build_dir() / proj_install_dir / 'include',
+  '-DPROJ_LIBRARY_RELEASE=' + meson.current_build_dir() / proj_install_dir / 'lib' / 'libproj.so',
+  '-DGDAL_INCLUDE_DIR=' + meson.current_build_dir() / gdal_install_dir / 'include',
+  '-DGDAL_LIBRARY=' + meson.current_build_dir() / gdal_install_dir / 'lib' / 'libgdal.so',
   check: true
 )
 
