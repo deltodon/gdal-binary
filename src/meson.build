@@ -27,8 +27,5 @@ py.extension_module('_core',
   subdir: 'gdal_binary'
 )
 
-# Install the version.py file
-py.install_sources(
-  '../version.py',
-  subdir: 'gdal_binary'
-)
+# Note: We've removed the installation of '../version.py' from here
+# as it's now handled in the top-level meson.build file
