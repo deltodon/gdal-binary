@@ -76,41 +76,15 @@ py.install_sources(
 gdal_python_build_dir = 'gdal_python_build'
 run_command('mkdir', '-p', gdal_python_build_dir, check: true)
 
-# Create a minimal CMakeLists.txt for GDAL Python bindings
-gdal_python_cmakelists = 'gdal_python_cmakelists.txt'
-run_command('cat', output: gdal_python_cmakelists, input: '''
-cmake_minimum_required(VERSION 3.16)
-project(GDAL_PYTHON_BINDINGS)
-
-find_package(SWIG REQUIRED)
-include(${CMAKE_ROOT}/Modules/UseSWIG.cmake)
-
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-include_directories(${Python3_INCLUDE_DIRS})
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/gdal/cmake")
-find_package(GDAL REQUIRED)
-include_directories(${GDAL_INCLUDE_DIR})
-
-set_property(SOURCE gdal/swig/python/gdal.i PROPERTY CPLUSPLUS ON)
-set_property(SOURCE gdal/swig/python/gdal.i PROPERTY SWIG_MODULE_NAME _gdal)
-
-swig_add_library(gdal_python
-  TYPE MODULE
-  LANGUAGE python
-  SOURCES gdal/swig/python/gdal.i)
-
-swig_link_libraries(gdal_python ${GDAL_LIBRARY} ${Python3_LIBRARIES})
-
-install(TARGETS gdal_python DESTINATION ${Python3_SITELIB}/osgeo)
-''', check: true)
-
 cmake_python_configure = run_command('cmake',
   '-S', meson.current_source_dir(),
   '-B', gdal_python_build_dir,
   '-DCMAKE_PREFIX_PATH=' + meson.current_build_dir() / gdal_install_dir,
+  '-DCMAKE_MODULE_PATH=' + meson.current_source_dir() / 'gdal/cmake;' + meson.current_source_dir() / 'gdal/cmake/helpers',
+  '-DCMAKE_INSTALL_PREFIX=' + meson.current_build_dir() / gdal_python_build_dir,
   '-DSWIG_EXECUTABLE=' + run_command('which', 'swig', check: true).stdout().strip(),
   '-DPython3_EXECUTABLE=' + py.path(),
+  '-DGDAL_PYTHON_CSOURCE_DIR=' + meson.current_source_dir() / 'gdal/swig/python',
   check: true
 )
 
@@ -118,10 +92,6 @@ cmake_python_build = run_command('cmake', '--build', gdal_python_build_dir, chec
 
 # Copy the built Python module to the project's Python package directory
 run_command('cp', 
-  gdal_python_build_dir / 'gdal_python.py',
-  gdal_python_build_dir / '_gdal_python.so',
+  gdal_python_build_dir / 'osgeo/_gdal.so',
   meson.current_source_dir() / 'src/gdal_binary/',
   check: true)
-
-# Clean up temporary CMakeLists.txt
-run_command('rm', gdal_python_cmakelists, check: true)
