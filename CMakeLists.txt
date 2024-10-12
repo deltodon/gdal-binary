@@ -2,20 +2,26 @@ cmake_minimum_required(VERSION 3.16)
 project(GDALPythonWrapper)
 
 # Find Python with required components
-find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
+find_package(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
-# Print the Python-related variables for debugging
+# Find SWIG
+find_package(SWIG REQUIRED)
+
+# Print debug information
 message(STATUS "Python_EXECUTABLE: ${Python_EXECUTABLE}")
 message(STATUS "Python_VERSION: ${Python_VERSION}")
 message(STATUS "Python_INCLUDE_DIRS: ${Python_INCLUDE_DIRS}")
 message(STATUS "Python_LIBRARIES: ${Python_LIBRARIES}")
+message(STATUS "Python_NumPy_INCLUDE_DIRS: ${Python_NumPy_INCLUDE_DIRS}")
+message(STATUS "SWIG_EXECUTABLE: ${SWIG_EXECUTABLE}")
 
-# Set the correct paths for GDAL Python files
+# Set GDAL-specific variables
+set(BUILD_PYTHON_BINDINGS ON CACHE BOOL "Build Python bindings")
 set(GDAL_PYTHON_CSOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/gdal/swig/python")
 set(GDAL_PYTHON_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/python_package")
 set(GDAL_PYTHON_INSTALL_DIR "${Python_SITELIB}")
 
-# Set paths for specific files
+# Set the correct paths for GDAL Python files
 set(SETUP_PY_IN "${GDAL_PYTHON_CSOURCE_DIR}/setup.py.in")
 set(README_RST "${GDAL_PYTHON_CSOURCE_DIR}/README.rst")
 set(TRIMMED_SYSCONFIG_PY "${GDAL_PYTHON_CSOURCE_DIR}/trimmedsysconfig.py")
@@ -30,20 +36,21 @@ foreach(file ${SETUP_PY_IN} ${README_RST} ${TRIMMED_SYSCONFIG_PY} ${INSTALL_PYTH
     endif()
 endforeach()
 
-# Set variables to override GDAL's CMakeLists.txt assumptions
-set(GDAL_PYTHON_SETUP_IN ${SETUP_PY_IN})
-set(GDAL_PYTHON_README ${README_RST})
-set(GDAL_PYTHON_TRIMMED_SYSCONFIG ${TRIMMED_SYSCONFIG_PY})
-set(GDAL_PYTHON_INSTALL_CMAKE_IN ${INSTALL_PYTHON_CMAKE_IN})
-
-# Print current working directory and GDAL_PYTHON_CSOURCE_DIR for debugging
-message(STATUS "Current working directory: ${CMAKE_CURRENT_SOURCE_DIR}")
-message(STATUS "GDAL_PYTHON_CSOURCE_DIR: ${GDAL_PYTHON_CSOURCE_DIR}")
-
-# Include the original CMakeLists.txt from GDAL's SWIG Python directory
-include(${CMAKE_CURRENT_SOURCE_DIR}/gdal/swig/python/CMakeLists.txt)
+# Include GDAL's CMakeLists.txt
+add_subdirectory(gdal)
 
 # Ensure the Python package is installed correctly
 install(DIRECTORY ${GDAL_PYTHON_PACKAGE_DIR}/
         DESTINATION ${GDAL_PYTHON_INSTALL_DIR}
         COMPONENT pythonbindings)
+
+# Add error checking
+if(NOT TARGET GDAL)
+    message(FATAL_ERROR "GDAL target not created. Check GDAL build configuration.")
+endif()
+
+# Print final configuration for debugging
+message(STATUS "BUILD_PYTHON_BINDINGS: ${BUILD_PYTHON_BINDINGS}")
+message(STATUS "GDAL_PYTHON_CSOURCE_DIR: ${GDAL_PYTHON_CSOURCE_DIR}")
+message(STATUS "GDAL_PYTHON_PACKAGE_DIR: ${GDAL_PYTHON_PACKAGE_DIR}")
+message(STATUS "GDAL_PYTHON_INSTALL_DIR: ${GDAL_PYTHON_INSTALL_DIR}")
