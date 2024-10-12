@@ -46,8 +46,11 @@ set(CMAKE_PREFIX_PATH
     ${GDAL_INSTALL_DIR}
 )
 
+# Explicitly set PROJ_DIR
+set(PROJ_DIR ${PROJ_INSTALL_DIR})
+
 # Find PROJ (built by meson)
-find_package(PROJ REQUIRED)
+find_package(PROJ REQUIRED CONFIG)
 
 if(PROJ_FOUND)
     message(STATUS "PROJ found:")
