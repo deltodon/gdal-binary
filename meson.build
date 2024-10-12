@@ -41,7 +41,7 @@ cmake_configure = run_command('cmake',
   '-DCMAKE_PREFIX_PATH=' + meson.current_build_dir() / proj_install_dir,
   '-DGDAL_USE_PROJ=ON',
   '-DBUILD_PYTHON_BINDINGS=OFF',
-  '-DGDAL_ENABLE_CONFIG_PACKAGE=ON'
+  '-DGDAL_ENABLE_CONFIG_PACKAGE=ON',
   check: true
 )
 
