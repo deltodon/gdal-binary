@@ -42,6 +42,12 @@ set(PROJ_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/proj)
 set(PROJ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/proj/include)
 set(PROJ_LIBRARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/proj/lib)
 
+# Add PROJ's cmake directory to CMAKE_MODULE_PATH
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/proj/cmake")
+
+# Set PROJ_DATA environment variable
+set(ENV{PROJ_DATA} "${CMAKE_CURRENT_SOURCE_DIR}/proj/data")
+
 find_package(PROJ REQUIRED)
 
 if(PROJ_FOUND)
