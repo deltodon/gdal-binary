@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(GDALPythonWrapper)
 
 # Find Python with required components
-find_package(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
+find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 # Find SWIG
 find_package(SWIG REQUIRED)
@@ -12,7 +12,6 @@ message(STATUS "Python_EXECUTABLE: ${Python_EXECUTABLE}")
 message(STATUS "Python_VERSION: ${Python_VERSION}")
 message(STATUS "Python_INCLUDE_DIRS: ${Python_INCLUDE_DIRS}")
 message(STATUS "Python_LIBRARIES: ${Python_LIBRARIES}")
-message(STATUS "Python_NumPy_INCLUDE_DIRS: ${Python_NumPy_INCLUDE_DIRS}")
 message(STATUS "SWIG_EXECUTABLE: ${SWIG_EXECUTABLE}")
 
 # Set GDAL-specific variables
