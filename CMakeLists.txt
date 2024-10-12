@@ -35,19 +35,18 @@ foreach(file ${SETUP_PY_IN} ${README_RST} ${TRIMMED_SYSCONFIG_PY} ${INSTALL_PYTH
     endif()
 endforeach()
 
-# Find PROJ
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/proj)
-set(PROJ_DIR ${CMAKE_CURRENT_SOURCE_DIR}/proj)
-set(PROJ_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/proj)
-set(PROJ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/proj/include)
-set(PROJ_LIBRARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/proj/lib)
+# Set paths for PROJ and GDAL built by meson
+set(PROJ_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/proj_install")
+set(GDAL_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/gdal_install")
 
-# Add PROJ's cmake directory to CMAKE_MODULE_PATH
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/proj/cmake")
+# Set CMAKE_PREFIX_PATH to include both PROJ and GDAL installation directories
+set(CMAKE_PREFIX_PATH 
+    ${CMAKE_PREFIX_PATH}
+    ${PROJ_INSTALL_DIR}
+    ${GDAL_INSTALL_DIR}
+)
 
-# Set PROJ_DATA environment variable
-set(ENV{PROJ_DATA} "${CMAKE_CURRENT_SOURCE_DIR}/proj/data")
-
+# Find PROJ (built by meson)
 find_package(PROJ REQUIRED)
 
 if(PROJ_FOUND)
@@ -56,21 +55,25 @@ if(PROJ_FOUND)
     message(STATUS "  PROJ_INCLUDE_DIRS: ${PROJ_INCLUDE_DIRS}")
     message(STATUS "  PROJ_LIBRARIES: ${PROJ_LIBRARIES}")
 else()
-    message(FATAL_ERROR "PROJ not found. Please check your PROJ installation.")
+    message(FATAL_ERROR "PROJ not found. Please check the meson build process.")
 endif()
 
-# Include GDAL's CMakeLists.txt
-add_subdirectory(gdal)
+# Find GDAL (built by meson)
+find_package(GDAL REQUIRED)
+
+if(GDAL_FOUND)
+    message(STATUS "GDAL found:")
+    message(STATUS "  GDAL_VERSION: ${GDAL_VERSION}")
+    message(STATUS "  GDAL_INCLUDE_DIRS: ${GDAL_INCLUDE_DIRS}")
+    message(STATUS "  GDAL_LIBRARIES: ${GDAL_LIBRARIES}")
+else()
+    message(FATAL_ERROR "GDAL not found. Please check the meson build process.")
+endif()
 
 # Ensure the Python package is installed correctly
 install(DIRECTORY ${GDAL_PYTHON_PACKAGE_DIR}/
         DESTINATION ${GDAL_PYTHON_INSTALL_DIR}
         COMPONENT pythonbindings)
-
-# Add error checking
-if(NOT TARGET GDAL)
-    message(FATAL_ERROR "GDAL target not created. Check GDAL build configuration.")
-endif()
 
 # Print final configuration for debugging
 message(STATUS "BUILD_PYTHON_BINDINGS: ${BUILD_PYTHON_BINDINGS}")
