@@ -15,6 +15,7 @@ proj_cmake_configure = run_command('cmake',
   '-DBUILD_SHARED_LIBS=ON',
   '-DENABLE_CURL=ON',
   '-DBUILD_TESTING=OFF',
+  '-DINSTALL_CMAKE_CONFIG_MODULE=ON',
   check: true
 )
 
@@ -25,6 +26,7 @@ proj_inc = include_directories(proj_install_dir / 'include')
 proj_lib_dir = meson.current_build_dir() / proj_install_dir / 'lib'
 proj_lib = meson.get_compiler('cpp').find_library('proj', dirs: proj_lib_dir)
 proj_dep = declare_dependency(include_directories: proj_inc, dependencies: proj_lib)
+
 
 # Build GDAL from source using CMake
 gdal_build_dir = 'gdal_build'
@@ -39,6 +41,7 @@ cmake_configure = run_command('cmake',
   '-DCMAKE_PREFIX_PATH=' + meson.current_build_dir() / proj_install_dir,
   '-DGDAL_USE_PROJ=ON',
   '-DBUILD_PYTHON_BINDINGS=OFF',
+  '-DGDAL_ENABLE_CONFIG_PACKAGE=ON'
   check: true
 )
 
