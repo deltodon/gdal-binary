@@ -76,7 +76,7 @@ py.install_sources(
 )
 
 # Build GDAL's Python wrapper
-gdal_python_build_dir = 'gdal_python_build'
+gdal_python_build_dir = 'build'
 run_command('mkdir', '-p', gdal_python_build_dir, check: true)
 
 cmake_python_configure = run_command('cmake',
