@@ -13,7 +13,7 @@ wheel:
 	@echo "Runing cibuildwheel for linux.."
 	@sudo rm -rf build
 	@mkdir -p build
-	@CIBW_CONTAINER_ENGINE="docker;create_args: -v=$(shell pwd)/build:/project/build" pdm run cibuildwheel --output-dir wheelhouse --platform linux .
+	@CIBW_CONTAINER_ENGINE="docker;create_args: -v=$(shell pwd)/build:/build" pdm run cibuildwheel --output-dir wheelhouse --platform linux .
 
 
 help:

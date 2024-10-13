@@ -60,7 +60,7 @@ skip = "cp*-manylinux_x86_64"  # Skip manylinux builds when musllinux is availab
 build = ["cp*-musllinux_x86_64", "cp*-manylinux_x86_64", "cp*-macosx_*", "cp*-win_amd64"]
 
 # build-verbosity = 3
-config-settings = "build-dir=/project/build"
+config-settings = "build-dir=/build"
 # multiple configs
 # config-settings = "build-dir=/project/build, setup-args=-Doption=true, compile-args=-j6"
 
