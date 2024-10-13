@@ -27,7 +27,7 @@ run_command('ls', '-R', proj_install_dir, check: true)
 
 # Set up PROJ dependency
 proj_inc = include_directories(proj_install_dir / 'include')
-proj_lib_dir = proj_install_dir / 'lib'
+proj_lib_dir = meson.current_build_dir() / proj_install_dir / 'lib'
 proj_lib = meson.get_compiler('cpp').find_library('proj', dirs: proj_lib_dir)
 proj_dep = declare_dependency(include_directories: proj_inc, dependencies: proj_lib)
 
@@ -56,7 +56,7 @@ run_command('ls', '-R', gdal_install_dir, check: true)
 
 # Set up GDAL dependency
 gdal_inc = include_directories(gdal_install_dir / 'include')
-gdal_lib_dir = gdal_install_dir / 'lib'
+gdal_lib_dir = meson.current_build_dir() / gdal_install_dir / 'lib'
 gdal_lib = meson.get_compiler('cpp').find_library('gdal', dirs: gdal_lib_dir)
 gdal_dep = declare_dependency(include_directories: gdal_inc, dependencies: [gdal_lib, proj_dep])
 
