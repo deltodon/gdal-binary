@@ -39,6 +39,25 @@ endforeach()
 set(proj_install_dir "${CMAKE_CURRENT_BINARY_DIR}/proj_install")
 set(gdal_install_dir "${CMAKE_CURRENT_BINARY_DIR}/gdal_install")
 
+# Check if directories exist and have correct permissions
+foreach(dir ${proj_install_dir} ${gdal_install_dir})
+    if(NOT EXISTS ${dir})
+        message(FATAL_ERROR "Directory does not exist: ${dir}")
+    else()
+        message(STATUS "Directory exists: ${dir}")
+        execute_process(
+            COMMAND ls -l ${dir}
+            RESULT_VARIABLE ls_result
+            OUTPUT_VARIABLE ls_output
+        )
+        if(ls_result EQUAL 0)
+            message(STATUS "Directory contents:\n${ls_output}")
+        else()
+            message(WARNING "Unable to list directory contents: ${dir}")
+        endif()
+    endif()
+endforeach()
+
 # Set CMAKE_PREFIX_PATH to include both PROJ and GDAL installation directories
 list(APPEND CMAKE_PREFIX_PATH 
     ${proj_install_dir}
@@ -55,8 +74,9 @@ message(STATUS "GDAL_DIR: ${GDAL_DIR}")
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
 # Find PROJ (built by meson)
-find_package(PROJ REQUIRED CONFIG
-             PATHS ${PROJ_DIR}
+find_package(PROJ CONFIG
+             PATHS ${PROJ_DIR} ${proj_install_dir}
+             PATH_SUFFIXES lib lib/cmake cmake
              NO_DEFAULT_PATH)
 
 if(PROJ_FOUND)
@@ -64,20 +84,35 @@ if(PROJ_FOUND)
     message(STATUS "  PROJ_VERSION: ${PROJ_VERSION}")
     message(STATUS "  PROJ_INCLUDE_DIRS: ${PROJ_INCLUDE_DIRS}")
     message(STATUS "  PROJ_LIBRARIES: ${PROJ_LIBRARIES}")
-
-    # List available targets for PROJ
-    # get_property(proj_targets DIRECTORY ${PROJ_DIR} PROPERTY BUILDSYSTEM_TARGETS)
-    # message(STATUS "Available targets in PROJ_DIR:")
-    # foreach(target ${proj_targets})
-    #     message(STATUS "  ${target}")
-    # endforeach()
 else()
-    message(FATAL_ERROR "PROJ not found. Please check the meson build process.")
+    message(WARNING "PROJ not found using find_package. Attempting manual search.")
+    find_library(PROJ_LIBRARY
+        NAMES proj
+        PATHS ${proj_install_dir}
+        PATH_SUFFIXES lib
+        NO_DEFAULT_PATH
+    )
+    find_path(PROJ_INCLUDE_DIR
+        NAMES proj.h
+        PATHS ${proj_install_dir}
+        PATH_SUFFIXES include
+        NO_DEFAULT_PATH
+    )
+    if(PROJ_LIBRARY AND PROJ_INCLUDE_DIR)
+        message(STATUS "PROJ found manually:")
+        message(STATUS "  PROJ_LIBRARY: ${PROJ_LIBRARY}")
+        message(STATUS "  PROJ_INCLUDE_DIR: ${PROJ_INCLUDE_DIR}")
+        set(PROJ_LIBRARIES ${PROJ_LIBRARY})
+        set(PROJ_INCLUDE_DIRS ${PROJ_INCLUDE_DIR})
+    else()
+        message(FATAL_ERROR "PROJ not found. Please check the meson build process.")
+    endif()
 endif()
 
 # Find GDAL (built by meson)
-find_package(GDAL REQUIRED CONFIG
-             PATHS ${GDAL_DIR}
+find_package(GDAL CONFIG
+             PATHS ${GDAL_DIR} ${gdal_install_dir}
+             PATH_SUFFIXES lib lib/cmake cmake
              NO_DEFAULT_PATH)
 
 if(GDAL_FOUND)
@@ -85,39 +120,29 @@ if(GDAL_FOUND)
     message(STATUS "  GDAL_VERSION: ${GDAL_VERSION}")
     message(STATUS "  GDAL_INCLUDE_DIRS: ${GDAL_INCLUDE_DIRS}")
     message(STATUS "  GDAL_LIBRARIES: ${GDAL_LIBRARIES}")
-    
-    # Add more detailed debug output for GDAL_LIBRARIES
-    if(GDAL_LIBRARIES)
-        message(STATUS "  GDAL_LIBRARIES contents:")
-        foreach(lib ${GDAL_LIBRARIES})
-            message(STATUS "    ${lib}")
-        endforeach()
-    else()
-        message(WARNING "  GDAL_LIBRARIES is empty. Attempting to find GDAL library manually.")
-        
-        # Attempt to find GDAL library manually
-        find_library(GDAL_LIBRARY
-            NAMES gdal
-            PATHS ${gdal_install_dir}/lib
-            NO_DEFAULT_PATH
-        )
-        
-        if(GDAL_LIBRARY)
-            message(STATUS "  Manually found GDAL library: ${GDAL_LIBRARY}")
-            set(GDAL_LIBRARIES ${GDAL_LIBRARY})
-        else()
-            message(FATAL_ERROR "Unable to find GDAL library. Please check the GDAL installation.")
-        endif()
-    endif()
-
-    # List available targets for GDAL
-    # get_property(gdal_targets DIRECTORY ${GDAL_DIR} PROPERTY BUILDSYSTEM_TARGETS)
-    # message(STATUS "Available targets in GDAL_DIR:")
-    # foreach(target ${gdal_targets})
-    #     message(STATUS "  ${target}")
-    # endforeach()
 else()
-    message(FATAL_ERROR "GDAL not found. Please check the meson build process.")
+    message(WARNING "GDAL not found using find_package. Attempting manual search.")
+    find_library(GDAL_LIBRARY
+        NAMES gdal
+        PATHS ${gdal_install_dir}
+        PATH_SUFFIXES lib
+        NO_DEFAULT_PATH
+    )
+    find_path(GDAL_INCLUDE_DIR
+        NAMES gdal.h
+        PATHS ${gdal_install_dir}
+        PATH_SUFFIXES include
+        NO_DEFAULT_PATH
+    )
+    if(GDAL_LIBRARY AND GDAL_INCLUDE_DIR)
+        message(STATUS "GDAL found manually:")
+        message(STATUS "  GDAL_LIBRARY: ${GDAL_LIBRARY}")
+        message(STATUS "  GDAL_INCLUDE_DIR: ${GDAL_INCLUDE_DIR}")
+        set(GDAL_LIBRARIES ${GDAL_LIBRARY})
+        set(GDAL_INCLUDE_DIRS ${GDAL_INCLUDE_DIR})
+    else()
+        message(FATAL_ERROR "GDAL not found. Please check the meson build process.")
+    endif()
 endif()
 
 # Ensure the Python package is installed correctly
@@ -143,8 +168,11 @@ add_custom_target(gdal_python_wrapper ALL
         -DSWIG_EXECUTABLE=${SWIG_EXECUTABLE}
         -DGDAL_PYTHON_CSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/gdal/swig/python
         -DPROJ_DIR=${PROJ_DIR}
-        -DGDAL_LIBRARY=${GDAL_LIBRARIES}
-        -DPROJ_LIBRARY=${PROJ_LIBRARIES}
+        -DGDAL_DIR=${GDAL_DIR}
+        -DPROJ_INCLUDE_DIRS=${PROJ_INCLUDE_DIRS}
+        -DPROJ_LIBRARIES=${PROJ_LIBRARIES}
+        -DGDAL_INCLUDE_DIRS=${GDAL_INCLUDE_DIRS}
+        -DGDAL_LIBRARIES=${GDAL_LIBRARIES}
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/gdal_python_build
     COMMAND ${CMAKE_COMMAND} -E copy 
         ${CMAKE_CURRENT_BINARY_DIR}/gdal_python_build/osgeo/_gdal.so
@@ -153,5 +181,10 @@ add_custom_target(gdal_python_wrapper ALL
     COMMENT "Building GDAL Python wrapper"
 )
 
-# Remove the problematic add_dependencies line
-# add_dependencies(gdal_python_wrapper GDAL PROJ)
+# Add a custom command to print the contents of the build directory after the build
+add_custom_command(
+    TARGET gdal_python_wrapper
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "Contents of gdal_python_build directory:"
+    COMMAND ${CMAKE_COMMAND} -E ls -R ${CMAKE_CURRENT_BINARY_DIR}/gdal_python_build
+)
