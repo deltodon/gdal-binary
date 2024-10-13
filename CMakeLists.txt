@@ -40,8 +40,7 @@ set(proj_install_dir "${CMAKE_CURRENT_BINARY_DIR}/proj_install")
 set(gdal_install_dir "${CMAKE_CURRENT_BINARY_DIR}/gdal_install")
 
 # Set CMAKE_PREFIX_PATH to include both PROJ and GDAL installation directories
-set(CMAKE_PREFIX_PATH 
-    ${CMAKE_PREFIX_PATH}
+list(APPEND CMAKE_PREFIX_PATH 
     ${proj_install_dir}
     ${gdal_install_dir}
 )
