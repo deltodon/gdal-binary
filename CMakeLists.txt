@@ -78,6 +78,30 @@ if(GDAL_FOUND)
     message(STATUS "  GDAL_VERSION: ${GDAL_VERSION}")
     message(STATUS "  GDAL_INCLUDE_DIRS: ${GDAL_INCLUDE_DIRS}")
     message(STATUS "  GDAL_LIBRARIES: ${GDAL_LIBRARIES}")
+    
+    # Add more detailed debug output for GDAL_LIBRARIES
+    if(GDAL_LIBRARIES)
+        message(STATUS "  GDAL_LIBRARIES contents:")
+        foreach(lib ${GDAL_LIBRARIES})
+            message(STATUS "    ${lib}")
+        endforeach()
+    else()
+        message(WARNING "  GDAL_LIBRARIES is empty. Attempting to find GDAL library manually.")
+        
+        # Attempt to find GDAL library manually
+        find_library(GDAL_LIBRARY
+            NAMES gdal
+            PATHS ${gdal_install_dir}/lib
+            NO_DEFAULT_PATH
+        )
+        
+        if(GDAL_LIBRARY)
+            message(STATUS "  Manually found GDAL library: ${GDAL_LIBRARY}")
+            set(GDAL_LIBRARIES ${GDAL_LIBRARY})
+        else()
+            message(FATAL_ERROR "Unable to find GDAL library. Please check the GDAL installation.")
+        endif()
+    endif()
 else()
     message(FATAL_ERROR "GDAL not found. Please check the meson build process.")
 endif()
@@ -105,6 +129,8 @@ add_custom_target(gdal_python_wrapper ALL
         -DSWIG_EXECUTABLE=${SWIG_EXECUTABLE}
         -DGDAL_PYTHON_CSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/gdal/swig/python
         -DPROJ_DIR=${PROJ_DIR}
+        -DGDAL_LIBRARY=${GDAL_LIBRARIES}
+        -DPROJ_LIBRARY=${PROJ_LIBRARIES}
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/gdal_python_build
     COMMAND ${CMAKE_COMMAND} -E copy 
         ${CMAKE_CURRENT_BINARY_DIR}/gdal_python_build/osgeo/_gdal.so
@@ -113,5 +139,5 @@ add_custom_target(gdal_python_wrapper ALL
     COMMENT "Building GDAL Python wrapper"
 )
 
-# Add dependencies
-add_dependencies(gdal_python_wrapper GDAL PROJ)
+# Remove the problematic add_dependencies line
+# add_dependencies(gdal_python_wrapper GDAL PROJ)
