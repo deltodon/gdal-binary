@@ -63,9 +63,7 @@ build = ["cp*-musllinux_x86_64", "cp*-manylinux_x86_64", "cp*-macosx_*", "cp*-wi
 config-settings = "build-dir=/build"
 # multiple configs
 # config-settings = "build-dir=/project/build, setup-args=-Doption=true, compile-args=-j6"
-
-# environment = {MESONPY_EXPERIMENTAL_NO_CLEAN ="1", MESONPY_VERBOSE = "1"}
-build-frontend = "build"
+environment = {MESONPY_EXPERIMENTAL_NO_CLEAN ="1", MESONPY_VERBOSE = "1"}
 
 
 # musllinux-specific settings

@@ -7,9 +7,6 @@ project('gdal-binary', 'cpp',
 proj_build_dir = meson.current_build_dir() / 'proj_build'
 proj_install_dir = meson.current_build_dir() / 'proj_install'
 
-# No need to create the build directory manually; CMake will handle it.
-# run_command('mkdir', '-p', proj_build_dir, check: true)
-
 # Configure and build PROJ
 proj_cmake_configure = run_command('cmake',
   '-S', 'proj',
@@ -18,6 +15,7 @@ proj_cmake_configure = run_command('cmake',
   '-DBUILD_SHARED_LIBS=ON',
   '-DENABLE_CURL=ON',
   '-DBUILD_TESTING=OFF',
+  '-DCMAKE_BUILD_TYPE=Release',
   '-DINSTALL_CMAKE_CONFIG_MODULE=ON',
   check: true
 )
@@ -39,15 +37,11 @@ run_command('ls', '-l', proj_lib_dir, check: true)
 cpp_compiler = meson.get_compiler('cpp')
 
 proj_lib = cpp_compiler.find_library('proj', dirs: [proj_lib_dir])
-# proj_dep = declare_dependency(include_directories: proj_inc, dependencies: proj_lib)
-proj_dep = declare_dependency(include_directories: proj_inc, link_with: proj_lib)
+proj_dep = declare_dependency(include_directories: proj_inc, dependencies: proj_lib)
 
 # Build GDAL from source using CMake
 gdal_build_dir = meson.current_build_dir() / 'gdal_build'
 gdal_install_dir = meson.current_build_dir() / 'gdal_install'
-
-# No need to create the build directory manually; CMake will handle it.
-# run_command('mkdir', '-p', gdal_build_dir, check: true)
 
 cmake_configure = run_command('cmake',
   '-S', 'gdal',
@@ -56,6 +50,7 @@ cmake_configure = run_command('cmake',
   '-DCMAKE_PREFIX_PATH=' + proj_install_dir,
   '-DGDAL_USE_PROJ=ON',
   '-DBUILD_PYTHON_BINDINGS=OFF',
+  '-DCMAKE_BUILD_TYPE=Release',
   '-DGDAL_ENABLE_CONFIG_PACKAGE=ON',
   check: true
 )
@@ -70,7 +65,7 @@ run_command('ls', '-R', gdal_install_dir, check: true)
 gdal_inc = include_directories(gdal_install_dir / 'include')
 gdal_lib_dir = gdal_install_dir / 'lib'
 gdal_lib = cpp_compiler.find_library('gdal', dirs: [gdal_lib_dir])
-gdal_dep = declare_dependency(include_directories: gdal_inc, link_with: gdal_lib, dependencies: proj_dep)
+gdal_dep = declare_dependency(include_directories: gdal_inc, dependencies: [gdal_lib, proj_dep])
 
 # Add Python module
 py_mod = import('python')
@@ -97,38 +92,30 @@ py.install_sources(
 # Build GDAL's Python wrapper
 gdal_python_build_dir = meson.current_build_dir() / 'gdal_python_build'
 
-# Old Build GDAL's Python wrapper
-# gdal_python_build_dir = 'build'
-# run_command('mkdir', '-p', gdal_python_build_dir, check: true)
+# Find SWIG executable
+swig_executable = run_command('which', 'swig', check: true).stdout().strip()
 
-cmake_python_configure = run_command('cmake',
+cmake_python_configure = run_command([
+  'cmake',
   '-S', '.',
   '-B', gdal_python_build_dir,
-  '-DCMAKE_PREFIX_PATH=' + gdal_install_dir + ';' + proj_install_dir,
-  '-DCMAKE_MODULE_PATH=' + 'gdal/cmake;gdal/cmake/helpers',
   '-DCMAKE_INSTALL_PREFIX=' + gdal_python_build_dir,
-  '-DSWIG_EXECUTABLE=' + run_command('which', 'swig', check: true).stdout().strip(),
+  '-DSWIG_EXECUTABLE=' + swig_executable,
   '-DGDAL_PYTHON_CSOURCE_DIR=' + 'gdal/swig/python',
-  '-DPROJ_DIR=' + proj_install_dir / 'lib' / 'cmake' / 'proj',
-  '-DGDAL_DIR=' + gdal_install_dir / 'lib' / 'cmake' / 'gdal',
-  check: true
-)
+  '-DPROJ_DIR=' + (proj_install_dir / 'lib' / 'cmake' / 'proj'),
+  '-DGDAL_DIR=' + (gdal_install_dir / 'lib' / 'cmake' / 'gdal'),
+  '-DCMAKE_BUILD_TYPE=Release',
+], check: true)
 
 # Debug output for CMake configuration
 run_command('echo', 'CMake configuration for GDAL Python wrapper completed. Checking build directory...', check: true)
 run_command('ls', '-R', gdal_python_build_dir, check: true)
 
-cmake_python_build = rrun_command('cmake', '--build', gdal_python_build_dir, check: true)
+cmake_python_build = run_command('cmake', '--build', gdal_python_build_dir, check: true)
 
 # Debug output for CMake build
-run_command('echo', 'CMake build for GDAL Python wrapper completed. Checking build directory...', check: true)
-run_command('ls', '-R', gdal_python_build_dir, check: true)
-
-# Old: Copy the built Python module to the project's Python package directory
-# run_command('cp', 
-#   gdal_python_build_dir / 'osgeo/_gdal.so',
-#   'src/gdal_binary/',
-#   check: true)
+# run_command('echo', 'CMake build for GDAL Python wrapper completed. Checking build directory...', check: true)
+# run_command('ls', '-R', gdal_python_build_dir, check: true)
 
 # Install the built Python module
 py.install_sources(
