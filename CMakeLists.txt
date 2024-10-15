@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(GDALDependencies)
+project(GDALPythonBinary)
 
 # Find Python with required components
 find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
@@ -115,5 +115,19 @@ message(STATUS "GDAL_PYTHON_INSTALL_DIR: ${GDAL_PYTHON_INSTALL_DIR}")
 list(APPEND CMAKE_PREFIX_PATH "${gdal_install_dir}" "${proj_install_dir}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/gdal/cmake" "${CMAKE_CURRENT_SOURCE_DIR}/gdal/cmake/helpers")
 
+# Print debug information before adding subdirectory
+message(STATUS "Before add_subdirectory:")
+message(STATUS "  PROJ_INCLUDE_DIRS: ${PROJ_INCLUDE_DIRS}")
+message(STATUS "  GDAL_INCLUDE_DIRS: ${GDAL_INCLUDE_DIRS}")
+message(STATUS "  PROJ_LIBRARIES: ${PROJ_LIBRARIES}")
+message(STATUS "  GDAL_LIBRARIES: ${GDAL_LIBRARIES}")
+
 # Add gdal_binary as a subdirectory
-# add_subdirectory(gdal_binary)
+add_subdirectory(gdal_binary)
+
+# Print debug information after adding subdirectory
+message(STATUS "After add_subdirectory:")
+message(STATUS "  PROJ_INCLUDE_DIRS: ${PROJ_INCLUDE_DIRS}")
+message(STATUS "  GDAL_INCLUDE_DIRS: ${GDAL_INCLUDE_DIRS}")
+message(STATUS "  PROJ_LIBRARIES: ${PROJ_LIBRARIES}")
+message(STATUS "  GDAL_LIBRARIES: ${GDAL_LIBRARIES}")
