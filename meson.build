@@ -72,9 +72,6 @@ py_mod = import('python')
 py = py_mod.find_installation('python3')
 pybind11_dep = dependency('pybind11')
 
-# Include the src subdirectory
-subdir('src')
-
 # Create a file with the version number
 version_file = configure_file(
   input : 'version.py.in',
@@ -85,21 +82,22 @@ version_file = configure_file(
 
 # Install Python package data
 py.install_sources(
-  ['src/gdal_binary/__init__.py', version_file],
+  ['gdal_binary/__init__.py', version_file],
   subdir: 'gdal_binary'
 )
 
-# Build GDAL's Python wrapper
-gdal_python_build_dir = meson.current_build_dir() / 'gdal_python_build'
+# Build GDAL's Python wrapper using the new CMake project
+# gdal_binary_src_dir = meson.current_source_dir() / 'gdal_binary'
+gdal_binary_build_dir = meson.current_build_dir() / 'gdal_binary_build'
 
 # Find SWIG executable
 swig_executable = run_command('which', 'swig', check: true).stdout().strip()
 
 cmake_python_configure = run_command([
   'cmake',
-  '-S', '.',
-  '-B', gdal_python_build_dir,
-  '-DCMAKE_INSTALL_PREFIX=' + gdal_python_build_dir,
+  '-S', 'gdal_binary',
+  '-B', gdal_binary_build_dir,
+  '-DCMAKE_INSTALL_PREFIX=' + gdal_binary_build_dir,
   '-DSWIG_EXECUTABLE=' + swig_executable,
   '-DGDAL_PYTHON_CSOURCE_DIR=' + 'gdal/swig/python',
   '-DPROJ_DIR=' + (proj_install_dir / 'lib' / 'cmake' / 'proj'),
@@ -111,20 +109,20 @@ cmake_python_configure = run_command([
 run_command('echo', 'CMake configuration for GDAL Python wrapper completed. Checking build directory...', check: true)
 run_command('ls', '-R', gdal_python_build_dir, check: true)
 
-cmake_python_build = run_command('cmake', '--build', gdal_python_build_dir, check: true)
+cmake_python_build = run_command('cmake', '--build', gdal_binary_build_dir, check: true)
 
 # Debug output for CMake build
-# run_command('echo', 'CMake build for GDAL Python wrapper completed. Checking build directory...', check: true)
-# run_command('ls', '-R', gdal_python_build_dir, check: true)
+run_command('echo', 'CMake build for GDAL Python wrapper completed. Checking build directory...', check: true)
+run_command('ls', '-R', gdal_python_build_dir, check: true)
 
 # Install the built Python module
 py.install_sources(
-  [gdal_python_build_dir / 'osgeo' / '_gdal.so'],
+  [gdal_binary_build_dir / 'gdal.py', gdal_binary_build_dir / '_gdal.so'],
   subdir: 'gdal_binary'
 )
 
 # Final debug output
 run_command('echo', 'Build process completed. Checking final directory structure...', check: true)
 run_command('ls', '-R', '.', check: true)
-run_command('echo', 'Checking src/gdal_binary directory...', check: true)
-run_command('ls', '-R', 'src/gdal_binary', check: true)
+run_command('echo', 'Checking gdal_binary directory...', check: true)
+run_command('ls', '-R', 'gdal_binary', check: true)

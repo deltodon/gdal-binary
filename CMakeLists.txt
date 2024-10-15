@@ -115,33 +115,5 @@ message(STATUS "GDAL_PYTHON_INSTALL_DIR: ${GDAL_PYTHON_INSTALL_DIR}")
 list(APPEND CMAKE_PREFIX_PATH "${gdal_install_dir}" "${proj_install_dir}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/gdal/cmake" "${CMAKE_CURRENT_SOURCE_DIR}/gdal/cmake/helpers")
 
-# Add target for GDAL Python wrapper
-add_custom_target(gdal_python_wrapper ALL
-    COMMAND ${CMAKE_COMMAND} -E echo "Building GDAL Python wrapper"
-    COMMAND ${CMAKE_COMMAND}
-        -S "${CMAKE_CURRENT_SOURCE_DIR}"
-        -B "${CMAKE_CURRENT_BINARY_DIR}/build"
-        "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/build"
-        "-DSWIG_EXECUTABLE=${SWIG_EXECUTABLE}"
-        "-DGDAL_PYTHON_CSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/gdal/swig/python"
-        "-DPROJ_DIR=${PROJ_DIR}"
-        "-DGDAL_DIR=${GDAL_DIR}"
-        "-DPROJ_INCLUDE_DIRS=${PROJ_INCLUDE_DIRS}"
-        "-DPROJ_LIBRARIES=${PROJ_LIBRARIES}"
-        "-DGDAL_INCLUDE_DIRS=${GDAL_INCLUDE_DIRS}"
-        "-DGDAL_LIBRARIES=${GDAL_LIBRARIES}"
-    COMMAND ${CMAKE_COMMAND} --build "${CMAKE_CURRENT_BINARY_DIR}/build"
-    COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_BINARY_DIR}/build/osgeo/_gdal.so"
-        "${CMAKE_CURRENT_SOURCE_DIR}/gdal_binary/"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    COMMENT "Building GDAL Python wrapper"
-)
-
-# Add a custom command to print the contents of the build directory after the build
-add_custom_command(
-    TARGET gdal_python_wrapper
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "Contents of build directory:"
-    COMMAND ${CMAKE_COMMAND} -E ls -R ${CMAKE_CURRENT_BINARY_DIR}/build
-)
+# Add gdal_binary as a subdirectory
+# add_subdirectory(gdal_binary)
