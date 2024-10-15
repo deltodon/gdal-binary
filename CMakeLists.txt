@@ -121,8 +121,6 @@ add_custom_target(gdal_python_wrapper ALL
     COMMAND ${CMAKE_COMMAND}
         -S "${CMAKE_CURRENT_SOURCE_DIR}"
         -B "${CMAKE_CURRENT_BINARY_DIR}/build"
-        # "-DCMAKE_PREFIX_PATH=${gdal_install_dir};${proj_install_dir}"
-        # "-DCMAKE_MODULE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/gdal/cmake;${CMAKE_CURRENT_SOURCE_DIR}/gdal/cmake/helpers"
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/build"
         "-DSWIG_EXECUTABLE=${SWIG_EXECUTABLE}"
         "-DGDAL_PYTHON_CSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/gdal/swig/python"
@@ -135,7 +133,7 @@ add_custom_target(gdal_python_wrapper ALL
     COMMAND ${CMAKE_COMMAND} --build "${CMAKE_CURRENT_BINARY_DIR}/build"
     COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_BINARY_DIR}/build/osgeo/_gdal.so"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gdal_binary/"
+        "${CMAKE_CURRENT_SOURCE_DIR}/gdal_binary/"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     COMMENT "Building GDAL Python wrapper"
 )
