@@ -64,7 +64,7 @@ config-settings = "build-dir=/build"
 # multiple configs
 # config-settings = "build-dir=/project/build, setup-args=-Doption=true, compile-args=-j6"
 environment = {MESONPY_EXPERIMENTAL_NO_CLEAN ="1", MESONPY_VERBOSE = "1"}
-build-frontend = "build"
+# build-frontend = "build"
 
 
 # musllinux-specific settings

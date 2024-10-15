@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(GDALPythonWrapper)
+project(GDALDependencies)
 
 # Find Python with required components
 find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
