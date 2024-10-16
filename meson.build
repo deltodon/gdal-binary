@@ -111,13 +111,13 @@ cmake_python_configure = run_command([
 
 # Debug output for CMake configuration
 run_command('echo', 'CMake configuration for GDAL Python wrapper completed. Checking build directory...', check: true)
-run_command('ls', '-R', gdal_python_build_dir, check: true)
+run_command('ls', '-R', gdal_binary_build_dir, check: true)
 
 cmake_python_build = run_command('cmake', '--build', gdal_binary_build_dir, check: true)
 
 # Debug output for CMake build
 run_command('echo', 'CMake build for GDAL Python wrapper completed. Checking build directory...', check: true)
-run_command('ls', '-R', gdal_python_build_dir, check: true)
+run_command('ls', '-R', gdal_binary_build_dir, check: true)
 
 # Copy the built _gdal.so file to the correct location
 run_command('cp',
