@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(GDALPythonBinary)
 
+# Set policies
+cmake_policy(SET CMP0078 NEW)
+cmake_policy(SET CMP0086 NEW)
+
 # Find Python with required components
 find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
@@ -26,37 +30,10 @@ set(README_RST "${GDAL_PYTHON_CSOURCE_DIR}/README.rst")
 set(TRIMMED_SYSCONFIG_PY "${GDAL_PYTHON_CSOURCE_DIR}/trimmedsysconfig.py")
 set(INSTALL_PYTHON_CMAKE_IN "${GDAL_PYTHON_CSOURCE_DIR}/install_python.cmake.in")
 
-# Ensure these files exist and print their paths
-foreach(file ${SETUP_PY_IN} ${README_RST} ${TRIMMED_SYSCONFIG_PY} ${INSTALL_PYTHON_CMAKE_IN})
-    if(NOT EXISTS ${file})
-        message(FATAL_ERROR "Required file not found: ${file}")
-    else()
-        message(STATUS "Found file: ${file}")
-    endif()
-endforeach()
-
 # Set paths for PROJ and GDAL built by meson
 set(proj_install_dir "/build/proj_install")
 set(gdal_install_dir "/build/gdal_install")
 
-# Check if directories exist and have correct permissions
-foreach(dir ${proj_install_dir} ${gdal_install_dir})
-    if(NOT EXISTS ${dir})
-        message(FATAL_ERROR "Directory does not exist: ${dir}")
-    else()
-        message(STATUS "Directory exists: ${dir}")
-        execute_process(
-            COMMAND ls -l ${dir}
-            RESULT_VARIABLE ls_result
-            OUTPUT_VARIABLE ls_output
-        )
-        if(ls_result EQUAL 0)
-            message(STATUS "Directory contents:\n${ls_output}")
-        else()
-            message(WARNING "Unable to list directory contents: ${dir}")
-        endif()
-    endif()
-endforeach()
 
 # Set CMAKE_PREFIX_PATH to include both PROJ and GDAL installation directories
 list(APPEND CMAKE_PREFIX_PATH 

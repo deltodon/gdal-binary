@@ -23,8 +23,8 @@ proj_cmake_configure = run_command('cmake',
 proj_cmake_build = run_command('cmake', '--build', proj_build_dir, '--target', 'install', check: true)
 
 # Debug output for PROJ build
-# run_command('echo', 'PROJ build completed. Checking installation...', check: true)
-# run_command('ls', '-R', proj_install_dir, check: true)
+run_command('echo', 'PROJ build completed. Checking installation...', check: true)
+run_command('ls', '-R', proj_install_dir, check: true)
 
 # Set up PROJ dependency
 proj_inc = include_directories(proj_install_dir / 'include')
@@ -80,65 +80,45 @@ version_file = configure_file(
   install_dir : py.get_install_dir() / 'gdal_binary'
 )
 
+# Copy GDAL Python source files
+gdal_python_src = meson.source_root() / 'gdal/swig/python'
+install_subdir(gdal_python_src, install_dir : py.get_install_dir() / 'gdal_binary')
+
 # Install Python package data
 py.install_sources(
   ['gdal_binary/__init__.py', version_file],
   subdir: 'gdal_binary'
 )
 
-# Build GDAL's Python wrapper using the new CMake project
-# gdal_binary_src_dir = meson.current_source_dir() / 'gdal_binary'
-gdal_binary_build_dir = meson.current_build_dir() / 'gdal_binary_build'
+# Copy GDAL and PROJ shared libraries
+gdal_so = gdal_lib_dir / 'libgdal.so'
+proj_so = proj_lib_dir / 'libproj.so'
 
-# Find SWIG executable
-swig_executable = run_command('which', 'swig', check: true).stdout().strip()
+if cpp_compiler.get_id() == 'msvc'
+  gdal_so = gdal_lib_dir / 'gdal.dll'
+  proj_so = proj_lib_dir / 'proj.dll'
+elif host_machine.system() == 'darwin'
+  gdal_so = gdal_lib_dir / 'libgdal.dylib'
+  proj_so = proj_lib_dir / 'libproj.dylib'
+endif
 
-# Configure GDAL Python wrapper build
-cmake_python_configure = run_command([
-  'cmake',
-  '-S', 'gdal_binary',
-  '-B', gdal_binary_build_dir,
-  '-DCMAKE_INSTALL_PREFIX=' + gdal_binary_build_dir,
-  '-DSWIG_EXECUTABLE=' + swig_executable,
-  '-DGDAL_PYTHON_CSOURCE_DIR=' + 'gdal/swig/python',
-  '-DPROJ_DIR=' + (proj_install_dir / 'lib' / 'cmake' / 'proj'),
-  '-DGDAL_DIR=' + (gdal_install_dir / 'lib' / 'cmake' / 'gdal'),
-  '-DCMAKE_BUILD_TYPE=Release',
-  # '-DPython_EXECUTABLE=' + py.path(),
-  # '-DPython_INCLUDE_DIRS=' + py.get_variable('INCLUDEPY'),
-  # '-DPython_LIBRARIES=' + py.get_variable('LIBDIR'),
-], check: true)
-
-# Debug output for CMake configuration
-run_command('echo', 'CMake configuration for GDAL Python wrapper completed. Checking build directory...', check: true)
-run_command('ls', '-R', gdal_binary_build_dir, check: true)
-
-cmake_python_build = run_command('cmake', '--build', gdal_binary_build_dir, check: true)
-
-# Debug output for CMake build
-run_command('echo', 'CMake build for GDAL Python wrapper completed. Checking build directory...', check: true)
-run_command('ls', '-R', gdal_binary_build_dir, check: true)
-
-# Copy the built _gdal.so file to the correct location
-run_command('cp',
-  gdal_binary_build_dir / '_gdal.so',
-  meson.current_source_dir() / 'gdal_binary/',
-  check: true
+install_data(
+  [gdal_so, proj_so],
+  install_dir: py.get_install_dir() / 'gdal_binary'
 )
 
-# Install the built Python module
-py.install_sources(
-  [gdal_binary_build_dir / 'gdal.py', gdal_binary_build_dir / '_gdal.so'],
-  subdir: 'gdal_binary'
+# Create a custom target to build the wheel
+custom_target('build_wheel',
+  output: 'wheel',
+  command: [
+    py.path(),
+    '-m',
+    'build',
+    '--wheel',
+    '--no-isolation',
+    '--outdir',
+    meson.current_build_dir() / 'dist'
+  ],
+  depends: [version_file],
+  build_by_default: true
 )
-
-# Add a custom target to print the contents of the build directory
-run_target('print_build_contents',
-  command : ['sh', '-c', 'echo "Contents of build directory:" && ls -R ' + gdal_binary_build_dir]
-)
-
-# Final debug output
-run_command('echo', 'Build process completed. Checking final directory structure...', check: true)
-run_command('ls', '-R', '.', check: true)
-run_command('echo', 'Checking gdal_binary directory...', check: true)
-run_command('ls', '-R', 'gdal_binary', check: true)

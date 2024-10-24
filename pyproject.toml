@@ -34,23 +34,12 @@ requires = ["meson-python", "pybind11"]
 build-backend = "mesonpy"
 
 [project.optional-dependencies]
-test = ["pytest"]
 dev = [
   "meson",
   "ninja",
   "cibuildwheel",
   "pybind11"
 ]
-
-[tool.pytest.ini_options]
-minversion = "8.3"
-addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
-xfail_strict = true
-filterwarnings = [
-  "error",
-  "ignore:(ast.Str|Attribute s|ast.NameConstant|ast.Num) is deprecated:DeprecationWarning:_pytest",  # Python 3.12
-]
-testpaths = ["tests"]
 
 [tool.cibuildwheel]
 test-command = "pytest {project}/tests"
