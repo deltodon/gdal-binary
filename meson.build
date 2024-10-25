@@ -72,12 +72,15 @@ py_mod = import('python')
 py = py_mod.find_installation('python3')
 pybind11_dep = dependency('pybind11')
 
+# Get the correct site-packages directory
+site_packages_dir = py.get_path('purelib')
+
 # Create a file with the version number
 version_file = configure_file(
   input : 'version.py.in',
   output : 'version.py',
   configuration : {'VERSION': meson.project_version()},
-  install_dir : py.get_install_dir() / 'gdal_binary',
+  install_dir : site_packages_dir / 'gdal_binary',
   install_tag : 'python'
 )
 
@@ -85,7 +88,7 @@ version_file = configure_file(
 gdal_python_src = meson.project_source_root() / 'gdal/swig/python'
 install_subdir(
   gdal_python_src,
-  install_dir : py.get_install_dir() / 'gdal_binary',
+  install_dir : site_packages_dir / 'gdal_binary',
   install_tag : 'python'
 )
 
@@ -101,12 +104,31 @@ elif host_machine.system() == 'darwin'
   proj_so = proj_lib_dir / 'libproj.dylib'
 endif
 
+# Debug output for shared library paths
+run_command('echo', 'GDAL shared library path:', gdal_so, check: true)
+run_command('echo', 'PROJ shared library path:', proj_so, check: true)
+
+# Install shared libraries
 install_data(
   [gdal_so, proj_so],
-  install_dir: py.get_install_dir() / 'gdal_binary',
+  install_dir: site_packages_dir / 'gdal_binary',
   install_tag : 'python'
 )
 
-message('Python install dir: ' + py.get_install_dir())
-message('Python full path: ' + py.full_path())
-message('Meson build dir: ' + meson.current_build_dir())
+# Debug output for installation
+run_command('echo', 'Python install dir:', py.get_install_dir(), check: true)
+run_command('echo', 'Python full path:', py.full_path(), check: true)
+run_command('echo', 'Meson build dir:', meson.current_build_dir(), check: true)
+run_command('echo', 'site-packages dir:', site_packages_dir, check: true)
+
+# Additional debug output
+run_command('echo', 'Checking installed files:', check: true)
+run_command('ls', '-R', site_packages_dir, check: true)
+
+# Create a custom target to ensure shared libraries are copied
+custom_target('copy_shared_libs',
+  output : ['libgdal.so', 'libproj.so'],
+  command : ['cp', gdal_so, proj_so, '@OUTDIR@'],
+  install : true,
+  install_dir : site_packages_dir / 'gdal_binary'
+)
