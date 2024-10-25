@@ -110,18 +110,3 @@ install_data(
 message('Python install dir: ' + py.get_install_dir())
 message('Python full path: ' + py.full_path())
 message('Meson build dir: ' + meson.current_build_dir())
-
-# Create a custom target to build the wheel
-custom_target('build_wheel',
-  output: 'wheel',
-  command: [
-    py.full_path(),
-    '-m',
-    'build',
-    '--wheel',
-    '--no-isolation',
-    '--outdir',
-    meson.current_build_dir() / 'dist'
-  ],
-  build_by_default: true
-)
