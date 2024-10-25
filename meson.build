@@ -77,17 +77,16 @@ version_file = configure_file(
   input : 'version.py.in',
   output : 'version.py',
   configuration : {'VERSION': meson.project_version()},
-  install_dir : py.get_install_dir() / 'gdal_binary'
+  install_dir : py.get_install_dir() / 'gdal_binary',
+  install_tag : 'python'
 )
 
 # Copy GDAL Python source files
-gdal_python_src = meson.source_root() / 'gdal/swig/python'
-install_subdir(gdal_python_src, install_dir : py.get_install_dir() / 'gdal_binary')
-
-# Install Python package data
-py.install_sources(
-  ['gdal_binary/__init__.py', version_file],
-  subdir: 'gdal_binary'
+gdal_python_src = meson.project_source_root() / 'gdal/swig/python'
+install_subdir(
+  gdal_python_src,
+  install_dir : py.get_install_dir() / 'gdal_binary',
+  install_tag : 'python'
 )
 
 # Copy GDAL and PROJ shared libraries
@@ -104,14 +103,19 @@ endif
 
 install_data(
   [gdal_so, proj_so],
-  install_dir: py.get_install_dir() / 'gdal_binary'
+  install_dir: py.get_install_dir() / 'gdal_binary',
+  install_tag : 'python'
 )
+
+message('Python install dir: ' + py.get_install_dir())
+message('Python full path: ' + py.full_path())
+message('Meson build dir: ' + meson.current_build_dir())
 
 # Create a custom target to build the wheel
 custom_target('build_wheel',
   output: 'wheel',
   command: [
-    py.path(),
+    py.full_path(),
     '-m',
     'build',
     '--wheel',
@@ -119,6 +123,5 @@ custom_target('build_wheel',
     '--outdir',
     meson.current_build_dir() / 'dist'
   ],
-  depends: [version_file],
   build_by_default: true
 )
