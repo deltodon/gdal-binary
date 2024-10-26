@@ -72,15 +72,12 @@ py_mod = import('python')
 py = py_mod.find_installation('python3')
 pybind11_dep = dependency('pybind11')
 
-# Get the correct site-packages directory
-site_packages_dir = py.get_path('purelib')
-
 # Create a file with the version number
 version_file = configure_file(
   input : 'version.py.in',
   output : 'version.py',
   configuration : {'VERSION': meson.project_version()},
-  install_dir : site_packages_dir / 'gdal_binary',
+  install_dir : 'purelib/gdal_binary',
   install_tag : 'python'
 )
 
@@ -88,7 +85,7 @@ version_file = configure_file(
 gdal_python_src = meson.project_source_root() / 'gdal/swig/python'
 install_subdir(
   gdal_python_src,
-  install_dir : site_packages_dir / 'gdal_binary',
+  install_dir : 'purelib/gdal_binary',
   install_tag : 'python'
 )
 
@@ -111,30 +108,31 @@ run_command('echo', 'PROJ shared library path:', proj_so, check: true)
 # Install shared libraries with explicit 'runtime' tag
 install_data(
   [gdal_so, proj_so],
-  install_dir: site_packages_dir / 'gdal_binary',
+  install_dir: 'platlib',
   install_tag : 'runtime'
 )
 
 # Debug output for installation
-run_command('echo', 'Python install dir:', py.get_install_dir(), check: true)
-run_command('echo', 'Python full path:', py.full_path(), check: true)
-run_command('echo', 'Meson build dir:', meson.current_build_dir(), check: true)
-run_command('echo', 'site-packages dir:', site_packages_dir, check: true)
+run_command('echo', 'py.get_install_dir:', py.get_install_dir(), check: true)
+run_command('echo', 'py.full_path:', py.full_path(), check: true)
+run_command('echo', 'meson.current_build_dir:', meson.current_build_dir(), check: true)
+run_command('echo', 'purelib dir:', py.get_path('purelib'), check: true)
+run_command('echo', 'platlib dir:', py.get_path('platlib'), check: true)
 
 # Additional debug output
-run_command('echo', 'Checking installed files:', check: true)
-run_command('ls', '-R', site_packages_dir, check: true)
+# run_command('echo', 'Checking installed files:', check: true)
+# run_command('ls', '-R', py.get_path('platlib'), check: true)
 
 # Create a custom target to ensure shared libraries are copied
 custom_target('copy_shared_libs',
   output : ['libgdal.so', 'libproj.so'],
   command : ['cp', gdal_so, proj_so, '@OUTDIR@'],
   install : true,
-  install_dir : site_packages_dir / 'gdal_binary',
+  install_dir : 'platlib',
   install_tag : 'runtime'
 )
 
 # Additional debug output for shared library installation
-run_command('echo', 'Shared library installation paths:', check: true)
-run_command('echo', 'GDAL:', site_packages_dir / 'gdal_binary' / 'libgdal.so', check: true)
-run_command('echo', 'PROJ:', site_packages_dir / 'gdal_binary' / 'libproj.so', check: true)
+# run_command('echo', 'Shared library installation paths:', check: true)
+# run_command('echo', 'GDAL:', site_packages_dir / 'gdal_binary' / 'libgdal.so', check: true)
+# run_command('echo', 'PROJ:', site_packages_dir / 'gdal_binary' / 'libproj.so', check: true)
