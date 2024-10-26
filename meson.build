@@ -108,11 +108,11 @@ endif
 run_command('echo', 'GDAL shared library path:', gdal_so, check: true)
 run_command('echo', 'PROJ shared library path:', proj_so, check: true)
 
-# Install shared libraries
+# Install shared libraries with explicit 'runtime' tag
 install_data(
   [gdal_so, proj_so],
   install_dir: site_packages_dir / 'gdal_binary',
-  install_tag : 'python'
+  install_tag : 'runtime'
 )
 
 # Debug output for installation
@@ -130,5 +130,11 @@ custom_target('copy_shared_libs',
   output : ['libgdal.so', 'libproj.so'],
   command : ['cp', gdal_so, proj_so, '@OUTDIR@'],
   install : true,
-  install_dir : site_packages_dir / 'gdal_binary'
+  install_dir : site_packages_dir / 'gdal_binary',
+  install_tag : 'runtime'
 )
+
+# Additional debug output for shared library installation
+run_command('echo', 'Shared library installation paths:', check: true)
+run_command('echo', 'GDAL:', site_packages_dir / 'gdal_binary' / 'libgdal.so', check: true)
+run_command('echo', 'PROJ:', site_packages_dir / 'gdal_binary' / 'libproj.so', check: true)
