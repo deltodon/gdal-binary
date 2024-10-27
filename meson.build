@@ -96,26 +96,13 @@ version_file = configure_file(
   install_tag : 'python'
 )
 
-# Copy GDAL Python source files and compiled extension
-gdal_python_src = meson.project_source_root() / 'gdal/swig/python'
+# Install everything from the GDAL site-packages directory
 gdal_python_build = gdal_install_dir / 'lib' / 'python@0@'.format(python_version) / 'site-packages'
 
 install_subdir(
-  gdal_python_src,
+  gdal_python_build,
   install_dir : py.get_install_dir(pure: false) / 'gdal_binary',
-  exclude_files : ['setup.py', 'setup.cfg'],
   install_tag : 'python'
-)
-
-# Install the compiled GDAL Python extensions
-gdal_python_ext_dir = gdal_python_build / 'osgeo'
-run_command('echo', 'GDAL Python extension directory:', gdal_python_ext_dir, check: true)
-run_command('ls', '-l', gdal_python_ext_dir, check: true)
-
-install_subdir(
-  gdal_python_ext_dir,
-  install_dir: py.get_install_dir(pure: false) / 'gdal_binary',
-  install_tag: 'python'
 )
 
 # Copy GDAL and PROJ shared libraries

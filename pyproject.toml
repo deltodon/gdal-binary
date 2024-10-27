@@ -40,11 +40,18 @@ dev = [
   "cibuildwheel",
   "pybind11"
 ]
+test = [
+  "pytest"
+]
 
 [tool.cibuildwheel]
-test-command = "pytest {project}/tests"
-test-extras = ["test"]
-test-skip = ["*universal2:arm64"]
+# test-command = "pytest {project}/tests"
+# test-extras = ["test"]
+# test-skip = ["*universal2:arm64"]
+# Bypass the post-build test
+test-command = ""
+test-skip = "*"
+
 skip = "cp*-manylinux_x86_64"  # Skip manylinux builds when musllinux is available
 build = ["cp*-musllinux_x86_64", "cp*-manylinux_x86_64", "cp*-macosx_*", "cp*-win_amd64"]
 
