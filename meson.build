@@ -1,6 +1,9 @@
 project('gdal-binary', 'cpp',
   version : '0.2.0.dev2',
-  default_options : ['warning_level=3', 'cpp_std=c++14']
+  default_options : [
+    'warning_level=3',
+    'cpp_std=c++14'
+  ]
 )
 
 # Build PROJ from source using CMake
@@ -22,17 +25,9 @@ proj_cmake_configure = run_command('cmake',
 
 proj_cmake_build = run_command('cmake', '--build', proj_build_dir, '--target', 'install', check: true)
 
-# Debug output for PROJ build
-run_command('echo', 'PROJ build completed. Checking installation...', check: true)
-run_command('ls', '-R', proj_install_dir, check: true)
-
 # Set up PROJ dependency
 proj_inc = include_directories(proj_install_dir / 'include')
 proj_lib_dir = proj_install_dir / 'lib'
-
-# Debug output for PROJ library path
-run_command('echo', 'PROJ library directory:', proj_lib_dir, check: true)
-run_command('ls', '-l', proj_lib_dir, check: true)
 
 cpp_compiler = meson.get_compiler('cpp')
 
@@ -43,23 +38,29 @@ proj_dep = declare_dependency(include_directories: proj_inc, dependencies: proj_
 gdal_build_dir = meson.current_build_dir() / 'gdal_build'
 gdal_install_dir = meson.current_build_dir() / 'gdal_install'
 
+# Get Python information
+py = import('python').find_installation(pure: false)
+python_path = py.full_path()
+python_version = py.language_version()
+python_include_dir = py.get_path('include')
+python_library = py.get_path('stdlib')
+
 cmake_configure = run_command('cmake',
   '-S', 'gdal',
   '-B', gdal_build_dir,
   '-DCMAKE_INSTALL_PREFIX=' + gdal_install_dir,
   '-DCMAKE_PREFIX_PATH=' + proj_install_dir,
   '-DGDAL_USE_PROJ=ON',
-  '-DBUILD_PYTHON_BINDINGS=OFF',
+  '-DBUILD_PYTHON_BINDINGS=ON',
   '-DCMAKE_BUILD_TYPE=Release',
   '-DGDAL_ENABLE_CONFIG_PACKAGE=ON',
+  '-DPYTHON_EXECUTABLE=' + python_path,
+  '-DPYTHON_INCLUDE_DIR=' + python_include_dir,
+  '-DPYTHON_LIBRARY=' + python_library,
   check: true
 )
 
 cmake_build = run_command('cmake', '--build', gdal_build_dir, '--target', 'install', check: true)
-
-# Debug output for GDAL build
-run_command('echo', 'GDAL build completed. Checking installation...', check: true)
-run_command('ls', '-R', gdal_install_dir, check: true)
 
 # Set up GDAL dependency
 gdal_inc = include_directories(gdal_install_dir / 'include')
@@ -68,25 +69,38 @@ gdal_lib = cpp_compiler.find_library('gdal', dirs: [gdal_lib_dir])
 gdal_dep = declare_dependency(include_directories: gdal_inc, dependencies: [gdal_lib, proj_dep])
 
 # Add Python module
-py_mod = import('python')
-py = py_mod.find_installation('python3')
 pybind11_dep = dependency('pybind11')
+
+# Get the correct site-packages directory
+purelib_dir = py.get_path('purelib')
+platlib_dir = py.get_path('platlib')
 
 # Create a file with the version number
 version_file = configure_file(
   input : 'version.py.in',
   output : 'version.py',
   configuration : {'VERSION': meson.project_version()},
-  install_dir : 'purelib/gdal_binary',
+  install_dir : py.get_install_dir(pure: false) / 'gdal_binary',
   install_tag : 'python'
 )
 
-# Copy GDAL Python source files
+# Copy GDAL Python source files and compiled extension
 gdal_python_src = meson.project_source_root() / 'gdal/swig/python'
+gdal_python_build = gdal_build_dir / 'swig/python'
+
 install_subdir(
   gdal_python_src,
-  install_dir : 'purelib/gdal_binary',
+  install_dir : py.get_install_dir(pure: false) / 'gdal_binary',
+  exclude_files : ['setup.py', 'setup.cfg'],
   install_tag : 'python'
+)
+
+# Install the compiled GDAL Python extension
+gdal_python_ext = gdal_python_build / 'osgeo' / '_gdal.so'
+install_data(
+  gdal_python_ext,
+  install_dir: py.get_install_dir(pure: false) / 'gdal_binary/osgeo',
+  install_tag: 'python'
 )
 
 # Copy GDAL and PROJ shared libraries
@@ -101,38 +115,15 @@ elif host_machine.system() == 'darwin'
   proj_so = proj_lib_dir / 'libproj.dylib'
 endif
 
-# Debug output for shared library paths
-run_command('echo', 'GDAL shared library path:', gdal_so, check: true)
-run_command('echo', 'PROJ shared library path:', proj_so, check: true)
-
-# Install shared libraries with explicit 'runtime' tag
+# Install shared libraries
 install_data(
   [gdal_so, proj_so],
-  install_dir: 'platlib',
-  install_tag : 'runtime'
+  install_dir: py.get_install_dir(pure: false) / 'gdal_binary',
+  install_tag : 'python'
 )
 
-# Debug output for installation
-run_command('echo', 'py.get_install_dir:', py.get_install_dir(), check: true)
-run_command('echo', 'py.full_path:', py.full_path(), check: true)
-run_command('echo', 'meson.current_build_dir:', meson.current_build_dir(), check: true)
-run_command('echo', 'purelib dir:', py.get_path('purelib'), check: true)
-run_command('echo', 'platlib dir:', py.get_path('platlib'), check: true)
-
-# Additional debug output
-# run_command('echo', 'Checking installed files:', check: true)
-# run_command('ls', '-R', py.get_path('platlib'), check: true)
-
-# Create a custom target to ensure shared libraries are copied
-custom_target('copy_shared_libs',
-  output : ['libgdal.so', 'libproj.so'],
-  command : ['cp', gdal_so, proj_so, '@OUTDIR@'],
-  install : true,
-  install_dir : 'platlib',
-  install_tag : 'runtime'
-)
-
-# Additional debug output for shared library installation
-# run_command('echo', 'Shared library installation paths:', check: true)
-# run_command('echo', 'GDAL:', site_packages_dir / 'gdal_binary' / 'libgdal.so', check: true)
-# run_command('echo', 'PROJ:', site_packages_dir / 'gdal_binary' / 'libproj.so', check: true)
+# Debug output
+run_command('echo', 'GDAL Python extension path:', gdal_python_ext, check: true)
+run_command('echo', 'GDAL shared library path:', gdal_so, check: true)
+run_command('echo', 'PROJ shared library path:', proj_so, check: true)
+run_command('echo', 'Python installation directory:', py.get_install_dir(pure: false), check: true)
