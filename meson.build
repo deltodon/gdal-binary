@@ -96,11 +96,17 @@ version_file = configure_file(
   install_tag : 'python'
 )
 
-# Install everything from the GDAL site-packages directory
+# Install osgeo and osgeo_utils from the GDAL site-packages directory
 gdal_python_build = gdal_install_dir / 'lib' / 'python@0@'.format(python_version) / 'site-packages'
 
 install_subdir(
-  gdal_python_build,
+  gdal_python_build / 'osgeo',
+  install_dir : py.get_install_dir(pure: false) / 'gdal_binary',
+  install_tag : 'python'
+)
+
+install_subdir(
+  gdal_python_build / 'osgeo_utils',
   install_dir : py.get_install_dir(pure: false) / 'gdal_binary',
   install_tag : 'python'
 )
@@ -124,7 +130,7 @@ run_command('echo', 'PROJ shared library files:', proj_so_files, check: true)
 # Install shared libraries
 install_data(
   gdal_so_files + proj_so_files,
-  install_dir: py.get_install_dir(pure: false) / 'gdal_binary',
+  install_dir: py.get_install_dir(pure: false) / 'gdal_binary.libs',
   install_tag : 'python'
 )
 
