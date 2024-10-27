@@ -119,25 +119,27 @@ install_subdir(
 )
 
 # Copy GDAL and PROJ shared libraries
-gdal_so = gdal_lib_dir / 'libgdal.so'
-proj_so = proj_lib_dir / 'libproj.so'
+gdal_so_files = run_command('find', gdal_lib_dir, '-name', 'libgdal.so*', check: true).stdout().strip().split('\n')
+proj_so_files = run_command('find', proj_lib_dir, '-name', 'libproj.so*', check: true).stdout().strip().split('\n')
 
 if cpp_compiler.get_id() == 'msvc'
-  gdal_so = gdal_lib_dir / 'gdal.dll'
-  proj_so = proj_lib_dir / 'proj.dll'
+  gdal_so_files = run_command('find', gdal_lib_dir, '-name', 'gdal*.dll', check: true).stdout().strip().split('\n')
+  proj_so_files = run_command('find', proj_lib_dir, '-name', 'proj*.dll', check: true).stdout().strip().split('\n')
 elif host_machine.system() == 'darwin'
-  gdal_so = gdal_lib_dir / 'libgdal.dylib'
-  proj_so = proj_lib_dir / 'libproj.dylib'
+  gdal_so_files = run_command('find', gdal_lib_dir, '-name', 'libgdal*.dylib', check: true).stdout().strip().split('\n')
+  proj_so_files = run_command('find', proj_lib_dir, '-name', 'libproj*.dylib', check: true).stdout().strip().split('\n')
 endif
+
+# Debug output
+run_command('echo', 'GDAL shared library files:', gdal_so_files, check: true)
+run_command('echo', 'PROJ shared library files:', proj_so_files, check: true)
 
 # Install shared libraries
 install_data(
-  [gdal_so, proj_so],
+  gdal_so_files + proj_so_files,
   install_dir: py.get_install_dir(pure: false) / 'gdal_binary',
   install_tag : 'python'
 )
 
 # Debug output
-run_command('echo', 'GDAL shared library path:', gdal_so, check: true)
-run_command('echo', 'PROJ shared library path:', proj_so, check: true)
 run_command('echo', 'Python installation directory:', py.get_install_dir(pure: false), check: true)

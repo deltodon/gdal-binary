@@ -54,7 +54,6 @@ config-settings = "build-dir=/build"
 # config-settings = "build-dir=/project/build, setup-args=-Doption=true, compile-args=-j6"
 environment = {MESONPY_EXPERIMENTAL_NO_CLEAN ="1", MESONPY_VERBOSE = "1"}
 
-
 # musllinux-specific settings
 [[tool.cibuildwheel.overrides]]
 select = "cp*-musllinux*"
@@ -65,10 +64,16 @@ before-all = [
   sqlite sqlite-dev libgeotiff-dev tiff-dev
   """,
 ]
+before-build = [
+  "mkdir -p /tmp/gdal_libs",
+  "cp /build/gdal_install/lib/libgdal* /tmp/gdal_libs/",
+]
+repair_wheel_command = "LD_LIBRARY_PATH=/tmp/gdal_libs:$LD_LIBRARY_PATH auditwheel repair -w {dest_dir} {wheel}"
 environment.CURL_LIBRARY = "/usr/lib/libcurl.so"
 environment.CURL_INCLUDE_DIR = "/usr/include/curl"
 environment.MESON_ARGS = "-Dcurl=enabled"
-
+environment.LD_LIBRARY_PATH = "/build/gdal_install/lib:$LD_LIBRARY_PATH"
+environment.AUDITWHEEL_PLAT = "musllinux_1_2_x86_64"
 
 # Linux-specific settings (manylinux)
 [[tool.cibuildwheel.overrides]]
@@ -80,10 +85,16 @@ before-all = [
   sqlite sqlite-devel libgeotiff-devel libtiff-devel
   """,
 ]
+before-build = [
+  "mkdir -p /tmp/gdal_libs",
+  "cp /build/gdal_install/lib/libgdal* /tmp/gdal_libs/",
+]
+repair_wheel_command = "LD_LIBRARY_PATH=/tmp/gdal_libs:$LD_LIBRARY_PATH auditwheel repair -w {dest_dir} {wheel}"
 environment.CURL_LIBRARY = "/usr/lib64/libcurl.so"
 environment.CURL_INCLUDE_DIR = "/usr/include/curl"
 environment.MESON_ARGS = "-Dcurl=enabled"
-
+environment.LD_LIBRARY_PATH = "/build/gdal_install/lib:$LD_LIBRARY_PATH"
+environment.AUDITWHEEL_PLAT = "manylinux2014_x86_64"
 
 # macOS-specific settings
 [[tool.cibuildwheel.overrides]]
@@ -94,10 +105,15 @@ before-all = [
   openssl libxml2 json-c netcdf hdf5 cfitsio qhull freexl libkml poppler webp
   """,
 ]
+before-build = [
+  "mkdir -p /tmp/gdal_libs",
+  "cp /build/gdal_install/lib/libgdal* /tmp/gdal_libs/",
+]
+repair_wheel_command = "DYLD_LIBRARY_PATH=/tmp/gdal_libs:$DYLD_LIBRARY_PATH delocate-wheel -w {dest_dir} -v {wheel}"
 environment.CURL_LIBRARY = "/usr/local/opt/curl/lib/libcurl.dylib"
 environment.CURL_INCLUDE_DIR = "/usr/local/opt/curl/include"
 environment.MESON_ARGS = "-Dcurl=enabled"
-
+environment.DYLD_LIBRARY_PATH = "/build/gdal_install/lib:$DYLD_LIBRARY_PATH"
 
 # Windows-specific settings
 [[tool.cibuildwheel.overrides]]
@@ -108,6 +124,12 @@ before-all = [
   openssl libxml2 json-c netcdf hdf5 cfitsio qhull freexl libkml poppler webp
   """,
 ]
+before-build = [
+  "mkdir C:\\tmp\\gdal_libs",
+  "copy C:\\build\\gdal_install\\lib\\gdal* C:\\tmp\\gdal_libs\\",
+]
+repair_wheel_command = "PATH=C:\\tmp\\gdal_libs;%PATH% delvewheel repair -w {dest_dir} {wheel}"
 environment.CURL_LIBRARY = "C:\\Program Files\\curl\\lib\\libcurl.lib"
 environment.CURL_INCLUDE_DIR = "C:\\Program Files\\curl\\include"
 environment.MESON_ARGS = "-Dcurl=enabled"
+environment.PATH = "C:\\build\\gdal_install\\lib;%PATH%"
