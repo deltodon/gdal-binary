@@ -30,7 +30,7 @@ classifiers = [
 ]
 
 [build-system]
-requires = ["meson-python", "pybind11"]
+requires = ["meson-python", "pybind11", "setuptools"]
 build-backend = "mesonpy"
 
 [project.optional-dependencies]

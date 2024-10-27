@@ -25,9 +25,17 @@ proj_cmake_configure = run_command('cmake',
 
 proj_cmake_build = run_command('cmake', '--build', proj_build_dir, '--target', 'install', check: true)
 
+# Debug output for PROJ build
+run_command('echo', 'PROJ build completed. Checking installation...', check: true)
+run_command('ls', '-R', proj_install_dir, check: true)
+
 # Set up PROJ dependency
 proj_inc = include_directories(proj_install_dir / 'include')
 proj_lib_dir = proj_install_dir / 'lib'
+
+# Debug output for PROJ library path
+run_command('echo', 'PROJ library directory:', proj_lib_dir, check: true)
+run_command('ls', '-l', proj_lib_dir, check: true)
 
 cpp_compiler = meson.get_compiler('cpp')
 
@@ -62,6 +70,10 @@ cmake_configure = run_command('cmake',
 
 cmake_build = run_command('cmake', '--build', gdal_build_dir, '--target', 'install', check: true)
 
+# Debug output for GDAL build
+run_command('echo', 'GDAL build completed. Checking installation...', check: true)
+run_command('ls', '-R', gdal_install_dir, check: true)
+
 # Set up GDAL dependency
 gdal_inc = include_directories(gdal_install_dir / 'include')
 gdal_lib_dir = gdal_install_dir / 'lib'
@@ -86,7 +98,7 @@ version_file = configure_file(
 
 # Copy GDAL Python source files and compiled extension
 gdal_python_src = meson.project_source_root() / 'gdal/swig/python'
-gdal_python_build = gdal_build_dir / 'swig/python'
+gdal_python_build = gdal_install_dir / 'lib' / 'python@0@'.format(python_version) / 'site-packages'
 
 install_subdir(
   gdal_python_src,
@@ -95,11 +107,14 @@ install_subdir(
   install_tag : 'python'
 )
 
-# Install the compiled GDAL Python extension
-gdal_python_ext = gdal_python_build / 'osgeo' / '_gdal.so'
-install_data(
-  gdal_python_ext,
-  install_dir: py.get_install_dir(pure: false) / 'gdal_binary/osgeo',
+# Install the compiled GDAL Python extensions
+gdal_python_ext_dir = gdal_python_build / 'osgeo'
+run_command('echo', 'GDAL Python extension directory:', gdal_python_ext_dir, check: true)
+run_command('ls', '-l', gdal_python_ext_dir, check: true)
+
+install_subdir(
+  gdal_python_ext_dir,
+  install_dir: py.get_install_dir(pure: false) / 'gdal_binary',
   install_tag: 'python'
 )
 
@@ -123,7 +138,6 @@ install_data(
 )
 
 # Debug output
-run_command('echo', 'GDAL Python extension path:', gdal_python_ext, check: true)
 run_command('echo', 'GDAL shared library path:', gdal_so, check: true)
 run_command('echo', 'PROJ shared library path:', proj_so, check: true)
 run_command('echo', 'Python installation directory:', py.get_install_dir(pure: false), check: true)
