@@ -19,7 +19,7 @@ wheel:
 	@echo "Running cibuildwheel for linux.."
 	# @sudo rm -rf ../build
 	# @mkdir -p ../build
-	@CIBW_BUILD_VERBOSITY=3 CIBW_CONTAINER_ENGINE=$(DOCKER_CFG) pdm run cibuildwheel --output-dir wheelhouse --platform linux .
+	@CIBW_CONTAINER_ENGINE=$(DOCKER_CFG) pdm run cibuildwheel --output-dir wheelhouse --platform linux .
 	
 debug:
 	@echo "Starting debug session in Docker container.."
@@ -32,10 +32,6 @@ build-local:
 	@meson compile -C build
 	@meson install -C build
 
-test-local:
-	@echo "Testing local build.."
-	@python -c "from gdal_binary import gdal; print(gdal.__file__)"
-
 help:
 	@echo "Available make targets:"
 	@echo " make help         - Print help"
@@ -44,5 +40,4 @@ help:
 	@echo " make wheel        - Run cibuildwheel for linux"
 	@echo " make debug        - Start a debug session in Docker container"
 	@echo " make build-local  - Build package locally"
-	@echo " make test-local   - Test local build"
 	@echo ""

@@ -10,6 +10,7 @@ find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 # Find SWIG
 find_package(SWIG REQUIRED)
+include(${SWIG_USE_FILE})
 
 # Print debug information
 message(STATUS "Python_EXECUTABLE: ${Python_EXECUTABLE}")
@@ -33,7 +34,6 @@ set(INSTALL_PYTHON_CMAKE_IN "${GDAL_PYTHON_CSOURCE_DIR}/install_python.cmake.in"
 # Set paths for PROJ and GDAL built by meson
 set(proj_install_dir "/build/proj_install")
 set(gdal_install_dir "/build/gdal_install")
-
 
 # Set CMAKE_PREFIX_PATH to include both PROJ and GDAL installation directories
 list(APPEND CMAKE_PREFIX_PATH 
@@ -78,6 +78,24 @@ else()
     message(FATAL_ERROR "GDAL not found. Please check the meson build process.")
 endif()
 
+# Set up SWIG
+set_property(SOURCE ${GDAL_PYTHON_CSOURCE_DIR}/gdal.i PROPERTY CPLUSPLUS ON)
+set_property(SOURCE ${GDAL_PYTHON_CSOURCE_DIR}/gdal.i PROPERTY SWIG_MODULE_NAME gdal)
+
+# Add custom target for generating Python files
+add_custom_target(python_generated_files
+    COMMAND ${SWIG_EXECUTABLE} -python -threads -I${GDAL_INCLUDE_DIRS} -o ${GDAL_PYTHON_PACKAGE_DIR}/gdal_wrap.cpp ${GDAL_PYTHON_CSOURCE_DIR}/gdal.i
+    COMMENT "Generating SWIG Python files"
+)
+
+# Add custom target for building Python binding
+add_custom_target(python_binding
+    COMMAND ${Python_EXECUTABLE} ${SETUP_PY_IN} build_ext --inplace
+    WORKING_DIRECTORY ${GDAL_PYTHON_PACKAGE_DIR}
+    DEPENDS python_generated_files
+    COMMENT "Building Python binding"
+)
+
 # Ensure the Python package is installed correctly
 install(DIRECTORY ${GDAL_PYTHON_PACKAGE_DIR}/
         DESTINATION ${GDAL_PYTHON_INSTALL_DIR}
@@ -92,18 +110,8 @@ message(STATUS "GDAL_PYTHON_INSTALL_DIR: ${GDAL_PYTHON_INSTALL_DIR}")
 list(APPEND CMAKE_PREFIX_PATH "${gdal_install_dir}" "${proj_install_dir}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/gdal/cmake" "${CMAKE_CURRENT_SOURCE_DIR}/gdal/cmake/helpers")
 
-# Print debug information before adding subdirectory
-message(STATUS "Before add_subdirectory:")
-message(STATUS "  PROJ_INCLUDE_DIRS: ${PROJ_INCLUDE_DIRS}")
-message(STATUS "  GDAL_INCLUDE_DIRS: ${GDAL_INCLUDE_DIRS}")
-message(STATUS "  PROJ_LIBRARIES: ${PROJ_LIBRARIES}")
-message(STATUS "  GDAL_LIBRARIES: ${GDAL_LIBRARIES}")
-
-# Add gdal_binary as a subdirectory
-add_subdirectory(gdal_binary)
-
-# Print debug information after adding subdirectory
-message(STATUS "After add_subdirectory:")
+# Print debug information
+message(STATUS "Final configuration:")
 message(STATUS "  PROJ_INCLUDE_DIRS: ${PROJ_INCLUDE_DIRS}")
 message(STATUS "  GDAL_INCLUDE_DIRS: ${GDAL_INCLUDE_DIRS}")
 message(STATUS "  PROJ_LIBRARIES: ${PROJ_LIBRARIES}")

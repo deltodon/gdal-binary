@@ -1,10 +1,12 @@
 project('gdal-binary', 'cpp',
-  version : '0.2.0.dev2',
+  version : '0.3.0.dev1',
   default_options : [
     'warning_level=3',
     'cpp_std=c++14'
   ]
 )
+
+package_dir = 'gdal_binary'
 
 # Build PROJ from source using CMake
 proj_build_dir = meson.current_build_dir() / 'proj_build'
@@ -83,23 +85,28 @@ gdal_dep = declare_dependency(include_directories: gdal_inc, dependencies: [gdal
 # Add Python module
 pybind11_dep = dependency('pybind11')
 
-# Get the correct site-packages directory
-purelib_dir = py.get_path('purelib')
-platlib_dir = py.get_path('platlib')
-
 # Install osgeo and osgeo_utils from the GDAL site-packages directory
 gdal_python_build = gdal_install_dir / 'lib' / 'python3.8' / 'site-packages'
 run_command('echo', 'gdal_python_build:', gdal_python_build, check: true)
 
+# Create a file with the version number
+version_file = configure_file(
+  input : 'version.py.in',
+  output : '__init__.py',
+  configuration : {'VERSION': meson.project_version()},
+  install_dir : py.get_install_dir(pure: false) / package_dir,
+  install_tag : 'python'
+)
+
 install_subdir(
   gdal_python_build / 'osgeo',
-  install_dir : py.get_install_dir(pure: false) / 'gdal_binary',
+  install_dir : py.get_install_dir(pure: false) / package_dir,
   install_tag : 'python'
 )
 
 install_subdir(
   gdal_python_build / 'osgeo_utils',
-  install_dir : py.get_install_dir(pure: false) / 'gdal_binary',
+  install_dir : py.get_install_dir(pure: false) / package_dir,
   install_tag : 'python'
 )
 
@@ -119,10 +126,12 @@ endif
 run_command('echo', 'GDAL shared library files:', gdal_so_files, check: true)
 run_command('echo', 'PROJ shared library files:', proj_so_files, check: true)
 
+package_libs_dir = package_dir + '.libs'
+
 # Install shared libraries
 install_data(
   gdal_so_files + proj_so_files,
-  install_dir: py.get_install_dir(pure: false) / 'gdal_binary.libs',
+  install_dir: py.get_install_dir(pure: false) / package_libs_dir,
   install_tag : 'python'
 )
 
