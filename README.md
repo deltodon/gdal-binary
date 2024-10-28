@@ -85,6 +85,13 @@ To run tests:
 pytest tests
 ```
 
+capture logs
+
+```bash
+make wheel > build.log
+```
+
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

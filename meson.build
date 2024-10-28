@@ -87,17 +87,9 @@ pybind11_dep = dependency('pybind11')
 purelib_dir = py.get_path('purelib')
 platlib_dir = py.get_path('platlib')
 
-# Create a file with the version number
-version_file = configure_file(
-  input : 'version.py.in',
-  output : 'version.py',
-  configuration : {'VERSION': meson.project_version()},
-  install_dir : py.get_install_dir(pure: false) / 'gdal_binary',
-  install_tag : 'python'
-)
-
 # Install osgeo and osgeo_utils from the GDAL site-packages directory
-gdal_python_build = gdal_install_dir / 'lib' / 'python@0@'.format(python_version) / 'site-packages'
+gdal_python_build = gdal_install_dir / 'lib' / 'python3.8' / 'site-packages'
+run_command('echo', 'gdal_python_build:', gdal_python_build, check: true)
 
 install_subdir(
   gdal_python_build / 'osgeo',

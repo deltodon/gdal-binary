@@ -5,6 +5,7 @@ all: help
 DOCKER_IMG="quay.io/pypa/musllinux_1_2_x86_64:2024.10.01-1"
 DOCKER_CFG="docker;create_args: -v=$(shell pwd)/../build:/build"
 PYBIN="/opt/python/cp38-cp38/bin"
+AFTER_BUILD="python {project}/wheel/add_top_level.py {wheel} {project}/wheel/top_level.txt"
 
 .venv:
 	@echo "Installing project dependencies.."
@@ -15,11 +16,11 @@ clean:
 	@rm -rf .venv wheelhouse build
 
 wheel:
-	@echo "Runing cibuildwheel for linux.."
+	@echo "Running cibuildwheel for linux.."
 	# @sudo rm -rf ../build
 	# @mkdir -p ../build
-	@CIBW_BUILD_VERBOSITY=1 CIBW_CONTAINER_ENGINE=$(DOCKER_CFG) pdm run cibuildwheel --output-dir wheelhouse --platform linux .
-
+	@CIBW_BUILD_VERBOSITY=3 CIBW_CONTAINER_ENGINE=$(DOCKER_CFG) pdm run cibuildwheel --output-dir wheelhouse --platform linux .
+	
 debug:
 	@echo "Starting debug session in Docker container.."
 	@docker run --rm -ti -v "$(shell pwd)":/project -v=$(shell pwd)/../build:/build --env PYBIN=$(PYBIN) $(DOCKER_IMG) /bin/bash
