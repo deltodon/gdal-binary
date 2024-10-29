@@ -65,10 +65,7 @@ config-settings = "build-dir=/build"
 [[tool.cibuildwheel.overrides]]
 select = "cp*-musllinux*"
 before-all = "scripts/cibw_before_all_musllinux.sh"
-before-build = [
-  "mkdir -p /tmp/gdal_libs",
-  "cp /build/gdal_install/lib/libgdal* /tmp/gdal_libs/",
-]
+
 environment.CURL_LIBRARY = "/usr/lib/libcurl.so"
 environment.CURL_INCLUDE_DIR = "/usr/include/curl"
 environment.MESON_ARGS = "-Dcurl=enabled"
@@ -84,10 +81,7 @@ repair-wheel-command = [
 [[tool.cibuildwheel.overrides]]
 select = "cp*-manylinux*"
 before-all = "scripts/cibw_before_all_manylinux.sh"
-before-build = [
-  "mkdir -p /tmp/gdal_libs",
-  "cp /build/gdal_install/lib/libgdal* /tmp/gdal_libs/",
-]
+
 repair-wheel-command = [
     "python $CIBW_PROJECT_DIR/scripts/add_top_level.py {wheel}",
     "LD_LIBRARY_PATH=/tmp/gdal_libs:$LD_LIBRARY_PATH auditwheel repair -w {dest_dir} {wheel}"
@@ -102,10 +96,7 @@ environment.AUDITWHEEL_PLAT = "manylinux2014_x86_64"
 [[tool.cibuildwheel.overrides]]
 select = "cp*-macosx*"
 before-all = "scripts/cibw_before_all_macosx.sh"
-before-build = [
-  "mkdir -p /tmp/gdal_libs",
-  "cp /build/gdal_install/lib/libgdal* /tmp/gdal_libs/",
-]
+
 repair-wheel-command = [
     "python $CIBW_PROJECT_DIR/scripts/add_top_level.py {wheel}",
     "DYLD_LIBRARY_PATH=/tmp/gdal_libs:$DYLD_LIBRARY_PATH delocate-wheel -w {dest_dir} -v {wheel}"
@@ -119,10 +110,7 @@ environment.DYLD_LIBRARY_PATH = "/build/gdal_install/lib:$DYLD_LIBRARY_PATH"
 [[tool.cibuildwheel.overrides]]
 select = "cp*-win*"
 before-all = "scripts/cibw_before_all_win.bat"
-before-build = [
-  "mkdir C:\\tmp\\gdal_libs",
-  "copy C:\\build\\gdal_install\\lib\\gdal* C:\\tmp\\gdal_libs\\",
-]
+
 # repair-wheel-command = [
 #     "python %CIBW_PROJECT_DIR%\\scripts\\add_top_level.py {wheel}",
 # ]

@@ -3,7 +3,14 @@ project('gdal-binary', 'cpp',
   default_options : [
     'warning_level=3',
     'cpp_std=c++14'
-  ]
+  ],
+  license : 'MIT',
+  license_files: [
+    'LICENSE',
+    'gdal/LICENSE.TXT',
+    'proj/COPYING'
+  ],
+  meson_version : '>=1.6.0'
 )
 
 package_dir = 'gdal_binary'

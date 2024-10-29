@@ -17,8 +17,8 @@ clean:
 
 wheel:
 	@echo "Running cibuildwheel for linux.."
-	# @sudo rm -rf ../build
-	# @mkdir -p ../build
+	@sudo rm -rf ../build
+	@mkdir -p ../build
 	@CIBW_CONTAINER_ENGINE=$(DOCKER_CFG) pdm run cibuildwheel --output-dir wheelhouse --platform linux .
 	
 debug:

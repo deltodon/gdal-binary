@@ -2,10 +2,10 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "dev"]
+groups = ["default", "dev", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:1083fb12cd69bb89598cd3b3172d58eb71ffbf0ee6006703575b0c8cde4ae7fc"
+content_hash = "sha256:a712baddca0c4d4a5e42d5a2b0c23cb8f8fb8a0fb81df73e76b62c2b3ebb5cd4"
 
 [[metadata.targets]]
 requires_python = ">=3.8,<3.13"
@@ -48,7 +48,7 @@ files = [
 
 [[package]]
 name = "cibuildwheel"
-version = "2.21.2"
+version = "2.21.3"
 requires_python = ">=3.8"
 summary = "Build Python wheels on CI with minimal configuration."
 groups = ["dev"]
@@ -63,8 +63,32 @@ dependencies = [
     "typing-extensions>=4.1.0; python_version < \"3.11\"",
 ]
 files = [
-    {file = "cibuildwheel-2.21.2-py3-none-any.whl", hash = "sha256:60c3bd4e374c459dda09c4be5da5084e86e19310dbd9052f630b76bf3942aabb"},
-    {file = "cibuildwheel-2.21.2.tar.gz", hash = "sha256:57b04c8afe1db6e03e78f9a4af8525410344a65a585a3369755433ce5fbc7754"},
+    {file = "cibuildwheel-2.21.3-py3-none-any.whl", hash = "sha256:f1d036a13603a6ce4019d8b1bd52c296cf32461a3b3be8441434b60b8b378b80"},
+    {file = "cibuildwheel-2.21.3.tar.gz", hash = "sha256:3ce23a9e5406b3eeb80039d7a6fdb218a2450932a8037c0bf76511cd88dfb74e"},
+]
+
+[[package]]
+name = "colorama"
+version = "0.4.6"
+requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
+summary = "Cross-platform colored terminal text."
+groups = ["test"]
+marker = "sys_platform == \"win32\""
+files = [
+    {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
+    {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
+]
+
+[[package]]
+name = "exceptiongroup"
+version = "1.2.2"
+requires_python = ">=3.7"
+summary = "Backport of PEP 654 (exception groups)"
+groups = ["test"]
+marker = "python_version < \"3.11\""
+files = [
+    {file = "exceptiongroup-1.2.2-py3-none-any.whl", hash = "sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b"},
+    {file = "exceptiongroup-1.2.2.tar.gz", hash = "sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc"},
 ]
 
 [[package]]
@@ -79,14 +103,25 @@ files = [
 ]
 
 [[package]]
+name = "iniconfig"
+version = "2.0.0"
+requires_python = ">=3.7"
+summary = "brain-dead simple config-ini parsing"
+groups = ["test"]
+files = [
+    {file = "iniconfig-2.0.0-py3-none-any.whl", hash = "sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374"},
+    {file = "iniconfig-2.0.0.tar.gz", hash = "sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3"},
+]
+
+[[package]]
 name = "meson"
-version = "1.5.2"
+version = "1.6.0"
 requires_python = ">=3.7"
 summary = "A high performance build system"
 groups = ["dev"]
 files = [
-    {file = "meson-1.5.2-py3-none-any.whl", hash = "sha256:77706e2368a00d789c097632ccf4fc39251fba56d03e1e1b262559a3c7a08f5b"},
-    {file = "meson-1.5.2.tar.gz", hash = "sha256:f955e09ab0d71ef180ae85df65991d58ed8430323de7d77a37e11c9ea630910b"},
+    {file = "meson-1.6.0-py3-none-any.whl", hash = "sha256:234a45f9206c6ee33b473ec1baaef359d20c0b89a71871d58c65a6db6d98fe74"},
+    {file = "meson-1.6.0.tar.gz", hash = "sha256:999b65f21c03541cf11365489c1fad22e2418bb0c3d50ca61139f2eec09d5496"},
 ]
 
 [[package]]
@@ -117,7 +152,7 @@ name = "packaging"
 version = "24.1"
 requires_python = ">=3.8"
 summary = "Core utilities for Python packages"
-groups = ["dev"]
+groups = ["dev", "test"]
 files = [
     {file = "packaging-24.1-py3-none-any.whl", hash = "sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124"},
     {file = "packaging-24.1.tar.gz", hash = "sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002"},
@@ -135,6 +170,17 @@ files = [
 ]
 
 [[package]]
+name = "pluggy"
+version = "1.5.0"
+requires_python = ">=3.8"
+summary = "plugin and hook calling mechanisms for python"
+groups = ["test"]
+files = [
+    {file = "pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669"},
+    {file = "pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1"},
+]
+
+[[package]]
 name = "pybind11"
 version = "2.13.6"
 requires_python = ">=3.7"
@@ -146,11 +192,30 @@ files = [
 ]
 
 [[package]]
+name = "pytest"
+version = "8.3.3"
+requires_python = ">=3.8"
+summary = "pytest: simple powerful testing with Python"
+groups = ["test"]
+dependencies = [
+    "colorama; sys_platform == \"win32\"",
+    "exceptiongroup>=1.0.0rc8; python_version < \"3.11\"",
+    "iniconfig",
+    "packaging",
+    "pluggy<2,>=1.5",
+    "tomli>=1; python_version < \"3.11\"",
+]
+files = [
+    {file = "pytest-8.3.3-py3-none-any.whl", hash = "sha256:a6853c7375b2663155079443d2e45de913a911a11d669df02a50814944db57b2"},
+    {file = "pytest-8.3.3.tar.gz", hash = "sha256:70b98107bd648308a7952b06e6ca9a50bc660be218d53c257cc1fc94fda10181"},
+]
+
+[[package]]
 name = "tomli"
 version = "2.0.2"
 requires_python = ">=3.8"
 summary = "A lil' TOML parser"
-groups = ["dev"]
+groups = ["dev", "test"]
 marker = "python_version < \"3.11\""
 files = [
     {file = "tomli-2.0.2-py3-none-any.whl", hash = "sha256:2ebe24485c53d303f690b0ec092806a085f07af5a5aa1464f3931eec36caaa38"},
