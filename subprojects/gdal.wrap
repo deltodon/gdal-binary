@@ -1,0 +1,10 @@
+[wrap-git]
+url = https://github.com/OSGeo/gdal.git
+revision = v3.8.0
+depth = 1
+
+[provide]
+gdal = gdal_dep
+
+[dependencies]
+proj = proj

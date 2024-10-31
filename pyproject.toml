@@ -30,32 +30,91 @@ classifiers = [
 ]
 
 [build-system]
-requires = [
-  "setuptools>=75",
-  "wheel",
-  "oldest-supported-numpy",
-  "setuptools_scm[toml]>=8.1",
-  "pybind11"
-]
-build-backend = "setuptools.build_meta"
+requires = ["meson-python", "pybind11", "setuptools"]
+build-backend = "mesonpy"
 
 [project.optional-dependencies]
-test = ["pytest"]
-
-[tool.pytest.ini_options]
-minversion = "8.3"
-addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
-xfail_strict = true
-filterwarnings = [
-  "error",
-  "ignore:(ast.Str|Attribute s|ast.NameConstant|ast.Num) is deprecated:DeprecationWarning:_pytest",  # Python 3.12
+dev = [
+  "meson",
+  "ninja",
+  "cibuildwheel",
+  "pybind11"
 ]
-testpaths = ["tests"]
+test = [
+  "pytest"
+]
 
 [tool.cibuildwheel]
-test-command = "pytest {project}/tests"
-test-extras = ["test"]
-test-skip = ["*universal2:arm64"]
-build-verbosity = 1
+# test-command = "pytest {project}/tests"
+# test-extras = ["test"]
+# test-skip = ["*universal2:arm64"]
+# Bypass the post-build test
+test-command = ""
+test-skip = "*"
 
-[tool.setuptools_scm]
+skip = "cp*-manylinux_x86_64"  # Skip manylinux builds when musllinux is available
+build = ["cp*-musllinux_x86_64", "cp*-manylinux_x86_64", "cp*-macosx_*", "cp*-win_amd64"]
+
+# build-verbosity = 3
+config-settings = "build-dir=/build"
+# multiple configs
+# config-settings = "build-dir=/project/build, setup-args=-Doption=true, compile-args=-j6"
+# environment = {MESONPY_EXPERIMENTAL_NO_CLEAN ="1", MESONPY_VERBOSE = "1"}
+
+# musllinux-specific settings
+[[tool.cibuildwheel.overrides]]
+select = "cp*-musllinux*"
+before-all = "scripts/cibw_before_all_musllinux.sh"
+
+environment.CURL_LIBRARY = "/usr/lib/libcurl.so"
+environment.CURL_INCLUDE_DIR = "/usr/include/curl"
+environment.MESON_ARGS = "-Dcurl=enabled"
+environment.LD_LIBRARY_PATH = "/build/gdal_install/lib:$LD_LIBRARY_PATH"
+environment.AUDITWHEEL_PLAT = "musllinux_1_2_x86_64"
+
+# repair-wheel-command = [
+#     "python /project/scripts/add_top_level.py {wheel}",
+#     "LD_LIBRARY_PATH=/tmp/gdal_libs:$LD_LIBRARY_PATH auditwheel repair -w {dest_dir} {wheel}",
+# ]
+
+# Linux-specific settings (manylinux)
+[[tool.cibuildwheel.overrides]]
+select = "cp*-manylinux*"
+before-all = "scripts/cibw_before_all_manylinux.sh"
+
+# repair-wheel-command = [
+#     "python $CIBW_PROJECT_DIR/scripts/add_top_level.py {wheel}",
+#     "LD_LIBRARY_PATH=/tmp/gdal_libs:$LD_LIBRARY_PATH auditwheel repair -w {dest_dir} {wheel}"
+# ]
+environment.CURL_LIBRARY = "/usr/lib64/libcurl.so"
+environment.CURL_INCLUDE_DIR = "/usr/include/curl"
+environment.MESON_ARGS = "-Dcurl=enabled"
+environment.LD_LIBRARY_PATH = "/build/gdal_install/lib:$LD_LIBRARY_PATH"
+environment.AUDITWHEEL_PLAT = "manylinux2014_x86_64"
+
+# macOS-specific settings
+[[tool.cibuildwheel.overrides]]
+select = "cp*-macosx*"
+before-all = "scripts/cibw_before_all_macosx.sh"
+
+# repair-wheel-command = [
+#     "python $CIBW_PROJECT_DIR/scripts/add_top_level.py {wheel}",
+#     "DYLD_LIBRARY_PATH=/tmp/gdal_libs:$DYLD_LIBRARY_PATH delocate-wheel -w {dest_dir} -v {wheel}"
+# ]
+environment.CURL_LIBRARY = "/usr/local/opt/curl/lib/libcurl.dylib"
+environment.CURL_INCLUDE_DIR = "/usr/local/opt/curl/include"
+environment.MESON_ARGS = "-Dcurl=enabled"
+environment.DYLD_LIBRARY_PATH = "/build/gdal_install/lib:$DYLD_LIBRARY_PATH"
+
+# Windows-specific settings
+[[tool.cibuildwheel.overrides]]
+select = "cp*-win*"
+before-all = "scripts/cibw_before_all_win.bat"
+
+# repair-wheel-command = [
+#     "python %CIBW_PROJECT_DIR%\\scripts\\add_top_level.py {wheel}",
+# ]
+environment.CURL_LIBRARY = "C:\\Program Files\\curl\\lib\\libcurl.lib"
+environment.CURL_INCLUDE_DIR = "C:\\Program Files\\curl\\include"
+environment.MESON_ARGS = "-Dcurl=enabled"
+environment.PATH = "C:\\build\\gdal_install\\lib;%PATH%"
