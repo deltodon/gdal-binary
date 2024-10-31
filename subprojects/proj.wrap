@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/OSGeo/PROJ.git
+revision = 9.5.0
+depth = 1
+
+[provide]
+proj = proj_dep
