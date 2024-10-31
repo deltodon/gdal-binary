@@ -20,14 +20,19 @@ wheel:
 	@sudo rm -rf ../build
 	@mkdir -p ../build
 	@CIBW_CONTAINER_ENGINE=$(DOCKER_CFG) pdm run cibuildwheel --output-dir wheelhouse --platform linux .
-	
+
+container:
+	@docker container ls -a
+
 debug:
 	@echo "Starting debug session in Docker container.."
-	@docker run --rm -ti -v "$(shell pwd)":/project -v=$(shell pwd)/../build:/build --env PYBIN=$(PYBIN) $(DOCKER_IMG) /bin/bash
+	@CIBW_DEBUG_KEEP_CONTAINER=TRUE CIBW_CONTAINER_ENGINE=$(DOCKER_CFG) pdm run cibuildwheel --output-dir wheelhouse --platform linux .
+
+attach:
+	@docker start -ai $$(docker ps -a --format '{{.ID}}\t{{.Names}}' | awk '/cibuildwheel-/ {print $$1}')
 
 build-local:
 	@echo "Building package locally.."
-	@pip install meson-python ninja
 	@meson setup build
 	@meson compile -C build
 	@meson install -C build
@@ -38,6 +43,8 @@ help:
 	@echo " make .venv        - Install project dependencies"
 	@echo " make clean        - Remove all build artifacts"
 	@echo " make wheel        - Run cibuildwheel for linux"
+	@echo " make container    - List Docker containers"
 	@echo " make debug        - Start a debug session in Docker container"
+	@echo " make attach       - Attach to the last cibuildwheel Docker container"
 	@echo " make build-local  - Build package locally"
 	@echo ""
