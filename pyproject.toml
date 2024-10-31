@@ -72,20 +72,20 @@ environment.MESON_ARGS = "-Dcurl=enabled"
 environment.LD_LIBRARY_PATH = "/build/gdal_install/lib:$LD_LIBRARY_PATH"
 environment.AUDITWHEEL_PLAT = "musllinux_1_2_x86_64"
 
-repair-wheel-command = [
-    "python /project/scripts/add_top_level.py {wheel}",
-    "LD_LIBRARY_PATH=/tmp/gdal_libs:$LD_LIBRARY_PATH auditwheel repair -w {dest_dir} {wheel}",
-]
+# repair-wheel-command = [
+#     "python /project/scripts/add_top_level.py {wheel}",
+#     "LD_LIBRARY_PATH=/tmp/gdal_libs:$LD_LIBRARY_PATH auditwheel repair -w {dest_dir} {wheel}",
+# ]
 
 # Linux-specific settings (manylinux)
 [[tool.cibuildwheel.overrides]]
 select = "cp*-manylinux*"
 before-all = "scripts/cibw_before_all_manylinux.sh"
 
-repair-wheel-command = [
-    "python $CIBW_PROJECT_DIR/scripts/add_top_level.py {wheel}",
-    "LD_LIBRARY_PATH=/tmp/gdal_libs:$LD_LIBRARY_PATH auditwheel repair -w {dest_dir} {wheel}"
-]
+# repair-wheel-command = [
+#     "python $CIBW_PROJECT_DIR/scripts/add_top_level.py {wheel}",
+#     "LD_LIBRARY_PATH=/tmp/gdal_libs:$LD_LIBRARY_PATH auditwheel repair -w {dest_dir} {wheel}"
+# ]
 environment.CURL_LIBRARY = "/usr/lib64/libcurl.so"
 environment.CURL_INCLUDE_DIR = "/usr/include/curl"
 environment.MESON_ARGS = "-Dcurl=enabled"
@@ -97,10 +97,10 @@ environment.AUDITWHEEL_PLAT = "manylinux2014_x86_64"
 select = "cp*-macosx*"
 before-all = "scripts/cibw_before_all_macosx.sh"
 
-repair-wheel-command = [
-    "python $CIBW_PROJECT_DIR/scripts/add_top_level.py {wheel}",
-    "DYLD_LIBRARY_PATH=/tmp/gdal_libs:$DYLD_LIBRARY_PATH delocate-wheel -w {dest_dir} -v {wheel}"
-]
+# repair-wheel-command = [
+#     "python $CIBW_PROJECT_DIR/scripts/add_top_level.py {wheel}",
+#     "DYLD_LIBRARY_PATH=/tmp/gdal_libs:$DYLD_LIBRARY_PATH delocate-wheel -w {dest_dir} -v {wheel}"
+# ]
 environment.CURL_LIBRARY = "/usr/local/opt/curl/lib/libcurl.dylib"
 environment.CURL_INCLUDE_DIR = "/usr/local/opt/curl/include"
 environment.MESON_ARGS = "-Dcurl=enabled"

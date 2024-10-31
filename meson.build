@@ -16,6 +16,8 @@ project('gdal-binary', 'cpp',
 package_dir = 'gdal_binary'
 
 # Build PROJ from source using CMake
+prefix_dir = get_option('prefix')
+
 proj_build_dir = meson.current_build_dir() / 'proj_build'
 proj_install_dir = meson.current_build_dir() / 'proj_install'
 
@@ -23,28 +25,31 @@ proj_install_dir = meson.current_build_dir() / 'proj_install'
 proj_cmake_configure = run_command('cmake',
   '-S', 'proj',
   '-B', proj_build_dir,
+  # '-G', 'Ninja',
   '-DCMAKE_INSTALL_PREFIX=' + proj_install_dir,
-  '-DBUILD_SHARED_LIBS=ON',
   '-DENABLE_CURL=ON',
   '-DBUILD_TESTING=OFF',
+  '-DCMAKE_POLICY_DEFAULT_CMP0156=NEW',
   '-DCMAKE_BUILD_TYPE=Release',
-  '-DINSTALL_CMAKE_CONFIG_MODULE=ON',
+  check: true
+)
+proj_cmake_build = run_command('cmake',
+  '--build', proj_build_dir,
+  '--target', 'install',
   check: true
 )
 
-proj_cmake_build = run_command('cmake', '--build', proj_build_dir, '--target', 'install', check: true)
-
 # Debug output for PROJ build
-run_command('echo', 'PROJ build completed. Checking installation...', check: true)
-run_command('ls', '-R', proj_install_dir, check: true)
+# run_command('echo', 'PROJ build completed. Checking installation...', check: true)
+# run_command('ls', '-R', prefix_dir, check: true)
 
 # Set up PROJ dependency
 proj_inc = include_directories(proj_install_dir / 'include')
 proj_lib_dir = proj_install_dir / 'lib'
 
-# Debug output for PROJ library path
-run_command('echo', 'PROJ library directory:', proj_lib_dir, check: true)
-run_command('ls', '-l', proj_lib_dir, check: true)
+# # Debug output for PROJ library path
+# run_command('echo', 'PROJ library directory:', proj_lib_dir, check: true)
+# run_command('ls', '-l', proj_lib_dir, check: true)
 
 cpp_compiler = meson.get_compiler('cpp')
 
@@ -62,6 +67,10 @@ python_version = py.language_version()
 python_include_dir = py.get_path('include')
 python_library = py.get_path('stdlib')
 
+run_command('echo', 'python_path:', python_path, check: true)
+run_command('echo', 'python_include_dir:', python_include_dir, check: true)
+run_command('echo', 'python_library:', python_library, check: true)
+
 cmake_configure = run_command('cmake',
   '-S', 'gdal',
   '-B', gdal_build_dir,
@@ -71,17 +80,24 @@ cmake_configure = run_command('cmake',
   '-DBUILD_PYTHON_BINDINGS=ON',
   '-DCMAKE_BUILD_TYPE=Release',
   '-DGDAL_ENABLE_CONFIG_PACKAGE=ON',
+  '-DGDAL_SET_INSTALL_RELATIVE_RPATH=ON',
   '-DPYTHON_EXECUTABLE=' + python_path,
   '-DPYTHON_INCLUDE_DIR=' + python_include_dir,
   '-DPYTHON_LIBRARY=' + python_library,
+  '-DCMAKE_INSTALL_RPATH=$ORIGIN/../lib',  # Use relative RPATH
+  '-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON',
   check: true
 )
 
-cmake_build = run_command('cmake', '--build', gdal_build_dir, '--target', 'install', check: true)
+cmake_build = run_command('cmake',
+  '--build', gdal_build_dir,
+  '--target', 'install',
+  check: true
+)
 
 # Debug output for GDAL build
 run_command('echo', 'GDAL build completed. Checking installation...', check: true)
-run_command('ls', '-R', gdal_install_dir, check: true)
+run_command('ls', '-R', prefix_dir, check: true)
 
 # Set up GDAL dependency
 gdal_inc = include_directories(gdal_install_dir / 'include')
@@ -89,58 +105,81 @@ gdal_lib_dir = gdal_install_dir / 'lib'
 gdal_lib = cpp_compiler.find_library('gdal', dirs: [gdal_lib_dir])
 gdal_dep = declare_dependency(include_directories: gdal_inc, dependencies: [gdal_lib, proj_dep])
 
-# Add Python module
-pybind11_dep = dependency('pybind11')
+# Add Python extension module
+py_extension_module = py.extension_module('py_extension_module',
+  [gdal_build_dir / 'swig/python/extensions/gdal_wrap.cpp'],
+  include_directories: [
+    gdal_inc,
+    include_directories(gdal_build_dir / 'swig/python'),
+    include_directories(python_include_dir),
+  ],
+  dependencies: [gdal_dep, py.dependency()],
+  install: true,
+  install_dir: py.get_install_dir(pure: false) / package_dir,
+  install_tag: 'python'
+)
 
 # Install osgeo and osgeo_utils from the GDAL site-packages directory
-gdal_python_build = gdal_install_dir / 'lib' / 'python3.8' / 'site-packages'
-run_command('echo', 'gdal_python_build:', gdal_python_build, check: true)
+# gdal_python_build = gdal_install_dir / 'lib' / 'python3.8' / 'site-packages'
+# run_command('echo', 'gdal_python_build:', gdal_python_build, check: true)
 
-# Create a file with the version number
-version_file = configure_file(
-  input : 'version.py.in',
-  output : '__init__.py',
-  configuration : {'VERSION': meson.project_version()},
-  install_dir : py.get_install_dir(pure: false) / package_dir,
-  install_tag : 'python'
-)
+# # Create a file with the version number
+# version_file = configure_file(
+#   input : 'version.py.in',
+#   output : '__init__.py',
+#   configuration : {'VERSION': meson.project_version()},
+#   install_dir : py.get_install_dir(pure: false) / package_dir,
+#   install_tag : 'python'
+# )
 
-install_subdir(
-  gdal_python_build / 'osgeo',
-  install_dir : py.get_install_dir(pure: false) / package_dir,
-  install_tag : 'python'
-)
+# install_subdir(
+#   gdal_python_build / 'osgeo',
+#   install_dir : py.get_install_dir(pure: false) / package_dir,
+#   install_tag : 'python'
+# )
 
-install_subdir(
-  gdal_python_build / 'osgeo_utils',
-  install_dir : py.get_install_dir(pure: false) / package_dir,
-  install_tag : 'python'
-)
+# install_subdir(
+#   gdal_python_build / 'osgeo_utils',
+#   install_dir : py.get_install_dir(pure: false) / package_dir,
+#   install_tag : 'python'
+# )
 
-# Copy GDAL and PROJ shared libraries
-gdal_so_files = run_command('find', gdal_lib_dir, '-name', 'libgdal.so*', check: true).stdout().strip().split('\n')
-proj_so_files = run_command('find', proj_lib_dir, '-name', 'libproj.so*', check: true).stdout().strip().split('\n')
+# # Copy GDAL and PROJ shared libraries
+# gdal_so_files = run_command('find', gdal_lib_dir, '-name', 'libgdal.so*', check: true).stdout().strip().split('\n')
+# proj_so_files = run_command('find', proj_lib_dir, '-name', 'libproj.so*', check: true).stdout().strip().split('\n')
 
-if cpp_compiler.get_id() == 'msvc'
-  gdal_so_files = run_command('find', gdal_lib_dir, '-name', 'gdal*.dll', check: true).stdout().strip().split('\n')
-  proj_so_files = run_command('find', proj_lib_dir, '-name', 'proj*.dll', check: true).stdout().strip().split('\n')
-elif host_machine.system() == 'darwin'
-  gdal_so_files = run_command('find', gdal_lib_dir, '-name', 'libgdal*.dylib', check: true).stdout().strip().split('\n')
-  proj_so_files = run_command('find', proj_lib_dir, '-name', 'libproj*.dylib', check: true).stdout().strip().split('\n')
-endif
+# if cpp_compiler.get_id() == 'msvc'
+#   gdal_so_files = run_command('find', gdal_lib_dir, '-name', 'gdal*.dll', check: true).stdout().strip().split('\n')
+#   proj_so_files = run_command('find', proj_lib_dir, '-name', 'proj*.dll', check: true).stdout().strip().split('\n')
+# elif host_machine.system() == 'darwin'
+#   gdal_so_files = run_command('find', gdal_lib_dir, '-name', 'libgdal*.dylib', check: true).stdout().strip().split('\n')
+#   proj_so_files = run_command('find', proj_lib_dir, '-name', 'libproj*.dylib', check: true).stdout().strip().split('\n')
+# endif
 
-# Debug output
-run_command('echo', 'GDAL shared library files:', gdal_so_files, check: true)
-run_command('echo', 'PROJ shared library files:', proj_so_files, check: true)
+# # Debug output
+# run_command('echo', 'GDAL shared library files:', gdal_so_files, check: true)
+# run_command('echo', 'PROJ shared library files:', proj_so_files, check: true)
 
-package_libs_dir = package_dir + '.libs'
+# package_libs_dir = package_dir + '.libs'
 
-# Install shared libraries
-install_data(
-  gdal_so_files + proj_so_files,
-  install_dir: py.get_install_dir(pure: false) / package_libs_dir,
-  install_tag : 'python'
-)
+# # Install shared libraries
+# install_data(
+#   gdal_so_files + proj_so_files,
+#   install_dir: py.get_install_dir(pure: false) / package_libs_dir,
+#   install_tag : 'python'
+# )
+
+# # Create and install a custom gdal-config script
+# custom_gdal_config = configure_file(
+#   input : 'custom_gdal_config.in',
+#   output : 'gdal-config',
+#   configuration : {
+#     'PACKAGE_DIR': package_dir,
+#     'GDAL_VERSION': meson.project_version(),
+#   },
+#   install_dir : py.get_install_dir(pure: false) / 'bin',
+#   install_tag : 'python'
+# )
 
 # Debug output
 run_command('echo', 'Python installation directory:', py.get_install_dir(pure: false), check: true)
